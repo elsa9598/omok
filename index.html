@@ -16,14 +16,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap" rel="stylesheet">
 
     <style>
-        /* --- 기본 설정 --- */
         body {
             margin: 0;
             padding: 0;
             background-color: #222;
             color: white;
-            font-family: 'Gamja Flower', cursive; /* 폰트 변경 */
-            font-size: 1.7rem; /* 한글이라 조금 더 키움 */
+            font-family: 'Gamja Flower', cursive;
+            font-size: 1.7rem;
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -32,7 +31,6 @@
             touch-action: none;
         }
 
-        /* --- 레이아웃 --- */
         .game-container {
             display: flex;
             width: 100%;
@@ -40,7 +38,6 @@
             max-width: 1600px;
         }
 
-        /* 플레이어 프레임 */
         .player-frame {
             flex: 1;
             display: flex;
@@ -55,7 +52,6 @@
             z-index: 10;
         }
 
-        /* --- 상단 프로필 영역 --- */
         .player-top-info {
             display: flex;
             align-items: center;
@@ -82,7 +78,6 @@
             text-shadow: 1px 1px 2px #000;
         }
 
-        /* 중앙 보드 프레임 */
         .board-frame {
             flex: 2;
             position: relative;
@@ -95,7 +90,6 @@
             border-right: 2px solid #555;
         }
 
-        /* --- 하단 정보 박스 --- */
         .player-info-box {
             display: flex;
             flex-direction: column;
@@ -128,7 +122,6 @@
             font-weight: bold;
         }
 
-        /* 턴 표시 효과 */
         .active-turn .player-info-box {
             border-color: #ffd700;
             background: rgba(255, 215, 0, 0.1);
@@ -142,7 +135,6 @@
             100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
         }
 
-        /* --- 보드 영역 --- */
         #game-zoom-layer {
             position: relative;
             transform-origin: center center;
@@ -159,7 +151,6 @@
             display: block;
         }
 
-        /* --- 오버레이 (화면 덮는 UI) --- */
         .overlay-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -193,13 +184,6 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .yellow-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.6);
-        }
-
-        .yellow-btn:active { transform: scale(0.95); }
-
         .coin-toss-btn {
             width: 150px; height: 150px;
             border-radius: 50%;
@@ -209,7 +193,6 @@
             font-size: 2.2rem;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer;
-            transition: all 0.3s ease;
             animation: float 2s infinite ease-in-out;
             overflow: hidden;
             color: #000;
@@ -217,7 +200,6 @@
         }
         
         .coin-toss-btn img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .coin-toss-btn:hover { transform: scale(1.2) rotate(10deg); box-shadow: 0 0 30px #ffd700; }
 
         .ceremony-content { text-align: center; animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .ceremony-img { max-width: 300px; max-height: 300px; filter: drop-shadow(0 0 20px rgba(255,255,255,0.5)); }
@@ -227,7 +209,6 @@
             margin-top: 20px; font-family: 'Gamja Flower', cursive;
         }
 
-        /* 최종 승리 화면 */
         .final-win-img {
             max-width: 80%;
             max-height: 60vh;
@@ -237,74 +218,76 @@
             margin-bottom: 20px;
         }
 
-        @keyframes popUp { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+        /* --- 화면채움 버튼 스타일 --- */
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ffd700;
+            color: #000;
+            font-family: 'Gamja Flower', cursive;
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 12px 20px;
+            border: 3px solid #000;
+            border-radius: 15px;
+            cursor: pointer;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            transition: all 0.2s ease;
+        }
+
+        .fullscreen-btn:active {
+            transform: scale(0.9);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+        }
+
+        @keyframes popUp { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        .control-btn {
-            position: absolute; bottom: 20px; right: 20px;
-            width: 60px; height: 60px;
-            background: #ffd700; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            cursor: pointer; z-index: 90; font-size: 24px;
-        }
-
-        /* 모바일 반응형 */
         @media (max-width: 768px) {
             .game-container { flex-direction: column; }
-            .player-frame {
-                flex-direction: row; 
-                flex: 0 0 80px;
-                padding: 5px 10px;
-                justify-content: space-between; 
-            }
-            .player-top-info {
-                width: auto; height: 100%;
-                justify-content: flex-start; 
-            }
-            .mini-player-name { font-size: 1.4rem; margin: 0 5px; }
-            .mini-profile-img { width: 40px; height: 40px; margin-right: 10px; }
-            
-            .player-info-box {
-                width: auto; padding: 5px; margin: 0;
-                flex-direction: row; border: 2px solid transparent;
-            }
+            .player-frame { flex-direction: row; flex: 0 0 80px; padding: 5px 10px; }
+            .mini-player-name { font-size: 1.4rem; }
+            .mini-profile-img { width: 40px; height: 40px; }
+            .player-info-box { width: auto; padding: 5px; flex-direction: row; }
             .full-body-img { display: none; } 
-            .score-badge { font-size: 1.3rem; padding: 2px 10px; }
-            
             .board-frame { flex: 1; border: none; }
             #go-board { border-width: 5px; }
-            .ceremony-img { max-width: 200px; }
-            .ceremony-text { font-size: 3.5rem; }
-            .final-win-img { max-width: 90%; }
+            /* 모바일에서 버튼 위치 조정 */
+            .fullscreen-btn {
+                bottom: 10px;
+                right: 10px;
+                padding: 8px 15px;
+                font-size: 1.2rem;
+            }
         }
-
     </style>
 </head>
 <body>
 
 <div class="game-container">
     <div class="player-frame left" id="frame-p1">
-        
         <div class="player-top-info">
-            <img src="black_ggami.png" alt="Ggami Profile" class="mini-profile-img">
+            <img src="black_ggami.png" class="mini-profile-img">
             <div class="mini-player-name">까미 (나)</div>
         </div>
-
         <div class="player-info-box">
-            <img src="ggami_2.png" alt="Ggami Full Body" class="full-body-img">
+            <img src="ggami_2.png" class="full-body-img">
             <div class="score-badge" id="score-p1">0 승</div>
         </div>
     </div>
 
     <div class="board-frame" id="board-container">
-        
         <div id="game-zoom-layer">
             <canvas id="go-board" width="600" height="600"></canvas>
         </div>
 
         <div id="start-screen" class="overlay-screen">
-            <h1 style="font-size: 5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px #000;">까미 vs 김치</h1>
+            <h1 style="font-size: 5rem; margin-bottom: 20px;">까미 vs 김치</h1>
             <button class="yellow-btn" onclick="showCoinToss()">게임 시작</button>
         </div>
 
@@ -312,7 +295,7 @@
             <h2 style="margin-bottom: 30px; font-size: 3.5rem;">운명의 선택</h2>
             <div class="coin-toss-btn" id="coin-btn" onclick="decideFirstTurn()">
                 <span>터치!</span>
-                <img id="toss-result-img" src="" alt="Result">
+                <img id="toss-result-img" src="">
             </div>
             <p id="toss-msg" style="margin-top: 20px; font-size: 1.8rem;">터치해서 선공을 정하세요!</p>
         </div>
@@ -326,47 +309,41 @@
 
         <div id="final-win-screen" class="overlay-screen hidden">
             <div class="ceremony-content">
-                <img src="sangkim.png" class="final-win-img" alt="Final Winner">
-                <div id="final-win-text" class="ceremony-text" style="color: #ffd700;"></div>
+                <img src="sangkim.png" class="final-win-img">
+                <div id="final-win-text" class="ceremony-text"></div>
             </div>
         </div>
         
-        <div class="control-btn" onclick="toggleFullscreenAndReset()">
-            🔄
-        </div>
+        <button class="fullscreen-btn" onclick="toggleFullscreenAndReset()">
+            <span>📺 화면채움</span>
+        </button>
     </div>
 
     <div class="player-frame right" id="frame-p2">
-        
         <div class="player-top-info">
-            <img src="white_kimchi.png" alt="Kimchi Profile" class="mini-profile-img">
+            <img src="white_kimchi.png" class="mini-profile-img">
             <div class="mini-player-name">김치 (AI)</div>
         </div>
-
         <div class="player-info-box">
-            <img src="kimchi_3.png" alt="Kimchi Full Body" class="full-body-img">
+            <img src="kimchi_3.png" class="full-body-img">
             <div class="score-badge" id="score-p2">0 승</div>
         </div>
     </div>
 </div>
 
 <script>
-    /* --- 변수 설정 --- */
     const canvas = document.getElementById('go-board');
     const ctx = canvas.getContext('2d');
     const zoomLayer = document.getElementById('game-zoom-layer');
     
-    // 게임 설정
     const GRID_SIZE = 15;
     const CELL_SIZE = 40;
     const PADDING = 20;
     const BOARD_PIXEL_SIZE = CELL_SIZE * (GRID_SIZE - 1) + PADDING * 2;
 
-    // 플레이어 ID
-    const HUMAN = 1; // 까미 (흑)
-    const AI = 2;    // 김치 (백)
+    const HUMAN = 1; 
+    const AI = 2;    
 
-    // 상태 변수
     let board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
     let currentPlayer = 1;
     let gameActive = false;
@@ -374,16 +351,13 @@
     let scores = { 1: 0, 2: 0 };
     let winnerOfLastRound = 0;
 
-    // 이미지 로드
     const imgBlack = new Image(); imgBlack.src = 'black_ggami.png';
     const imgWhite = new Image(); imgWhite.src = 'white_kimchi.png';
     
-    // 줌/팬 변수
     let scale = 1;
     let panX = 0; let panY = 0;
     let lastTouchX = 0; let lastTouchY = 0; let lastDist = 0;
 
-    /* --- 초기화 --- */
     function initCanvas() {
         canvas.width = BOARD_PIXEL_SIZE;
         canvas.height = BOARD_PIXEL_SIZE;
@@ -393,15 +367,11 @@
     imgBlack.onload = drawBoard;
     imgWhite.onload = drawBoard;
 
-    /* --- 게임 로직 --- */
     function drawBoard() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // 격자 그리기
         ctx.beginPath();
         ctx.strokeStyle = "#000";
         ctx.lineWidth = 1.5;
-
         for (let i = 0; i < GRID_SIZE; i++) {
             ctx.moveTo(PADDING, PADDING + i * CELL_SIZE);
             ctx.lineTo(PADDING + (GRID_SIZE - 1) * CELL_SIZE, PADDING + i * CELL_SIZE);
@@ -409,8 +379,6 @@
             ctx.lineTo(PADDING + i * CELL_SIZE, PADDING + (GRID_SIZE - 1) * CELL_SIZE);
         }
         ctx.stroke();
-
-        // 화점 그리기
         const stars = [3, 7, 11];
         ctx.fillStyle = "#000";
         for (let r of stars) {
@@ -420,13 +388,9 @@
                 ctx.fill();
             }
         }
-
-        // 돌 그리기
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
-                if (board[y][x] > 0) {
-                    drawStone(x, y, board[y][x]);
-                }
+                if (board[y][x] > 0) drawStone(x, y, board[y][x]);
             }
         }
     }
@@ -436,61 +400,33 @@
         const cy = PADDING + y * CELL_SIZE;
         const radius = CELL_SIZE / 2 - 2;
         const img = player === 1 ? imgBlack : imgWhite;
-
         ctx.save();
         ctx.beginPath();
         ctx.arc(cx, cy, radius, 0, Math.PI * 2);
         ctx.clip();
         ctx.drawImage(img, cx - radius, cy - radius, radius * 2, radius * 2);
-        
         ctx.strokeStyle = "rgba(0,0,0,0.2)";
-        ctx.lineWidth = 1;
         ctx.stroke();
         ctx.restore();
     }
 
     function updateTurnUI() {
-        const frameP1 = document.getElementById('frame-p1');
-        const frameP2 = document.getElementById('frame-p2');
-
-        if (currentPlayer === HUMAN) {
-            frameP1.classList.add('active-turn');
-            frameP2.classList.remove('active-turn');
-        } else {
-            frameP1.classList.remove('active-turn');
-            frameP2.classList.add('active-turn');
-        }
+        document.getElementById('frame-p1').classList.toggle('active-turn', currentPlayer === HUMAN);
+        document.getElementById('frame-p2').classList.toggle('active-turn', currentPlayer === AI);
     }
 
     function showCoinToss() {
         document.getElementById('start-screen').classList.add('hidden');
-        if (round === 1) {
-            document.getElementById('toss-screen').classList.remove('hidden');
-        } else {
-            startRound(winnerOfLastRound === 0 ? 1 : winnerOfLastRound); 
-        }
+        if (round === 1) document.getElementById('toss-screen').classList.remove('hidden');
+        else startRound(winnerOfLastRound || 1);
     }
 
     function decideFirstTurn() {
-        const btn = document.getElementById('coin-btn');
-        const img = document.getElementById('toss-result-img');
-        const msg = document.getElementById('toss-msg');
-        
-        const rand = Math.floor(Math.random() * 2) + 1; // 1 or 2
-        
-        btn.style.animation = 'none';
-        btn.style.transform = 'scale(1.5) rotate(360deg)';
-        
-        const resultImgSrc = rand === 1 ? 'black_ggami.png' : 'white_kimchi.png';
-        const resultName = rand === 1 ? "까미 (나)" : "김치 (AI)";
-        
-        img.src = resultImgSrc;
-        img.style.display = 'block';
+        const rand = Math.floor(Math.random() * 2) + 1;
+        document.getElementById('toss-result-img').src = rand === 1 ? 'black_ggami.png' : 'white_kimchi.png';
+        document.getElementById('toss-result-img').style.display = 'block';
         document.querySelector('#coin-btn span').style.display = 'none';
-        
-        msg.innerText = `${resultName} 선공!`;
-        msg.style.color = '#ffd700';
-
+        document.getElementById('toss-msg').innerText = `${rand === 1 ? '까미(나)' : '김치(AI)'} 선공!`;
         setTimeout(() => {
             document.getElementById('toss-screen').classList.add('hidden');
             startRound(rand);
@@ -501,381 +437,139 @@
         currentPlayer = startPlayer;
         gameActive = true;
         updateTurnUI();
-
-        // AI가 선공이면 AI 이동 트리거
-        if (currentPlayer === AI) {
-            setTimeout(makeAiMove, 1000);
-        }
+        if (currentPlayer === AI) setTimeout(makeAiMove, 1000);
     }
 
     canvas.addEventListener('click', (e) => {
-        // 게임 중이 아니거나 AI 턴이면 클릭 무시
         if (!gameActive || currentPlayer === AI) return;
-
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-
-        const clickX = (e.clientX - rect.left) * scaleX;
-        const clickY = (e.clientY - rect.top) * scaleY;
-
-        const gx = Math.round((clickX - PADDING) / CELL_SIZE);
-        const gy = Math.round((clickY - PADDING) / CELL_SIZE);
-
+        const gx = Math.round(((e.clientX - rect.left) * (canvas.width / rect.width) - PADDING) / CELL_SIZE);
+        const gy = Math.round(((e.clientY - rect.top) * (canvas.height / rect.height) - PADDING) / CELL_SIZE);
         placeStone(gx, gy);
     });
 
-    // ----------------------------------------------------
-    // --- 강력해진 AI 로직 (High Intelligence) ---
-    // ----------------------------------------------------
-    
+    // --- 강력한 AI 알고리즘 ---
     function makeAiMove() {
         if (!gameActive) return;
-
-        // 1. 최적의 수 계산
-        let bestMove = getBestMove(AI);
-
-        // 2. 돌 두기 (1000ms 딜레이 유지)
-        if (bestMove) {
-            placeStone(bestMove.x, bestMove.y);
-        }
-    }
-
-    function getBestMove(player) {
-        const opponent = player === AI ? HUMAN : AI;
-        let bestScore = -Infinity;
-        let bestMoves = [];
-
-        // 전체 보드 스캔
+        let bestScore = -Infinity, bestMoves = [];
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
                 if (board[y][x] === 0) {
-                    
-                    // AI 3-3 체크 (AI는 똑똑하게 금수를 피함)
-                    // if (player === HUMAN && check33(x, y, player)) continue; 
-
-                    // 점수 계산
-                    let attackScore = evaluatePoint(x, y, player); // AI 공격 점수
-                    let defenseScore = evaluatePoint(x, y, opponent); // 사용자 방어 점수
-
-                    // 가중치: 상대방이 이기려 할 때 방어하는 것이 공격보다 우선순위가 높음 (1.2배)
-                    let totalScore = attackScore + (defenseScore * 1.2);
-
-                    // 즉시 승리 가능한 자리 (최우선)
-                    if (attackScore >= 100000) totalScore = 2000000; 
-                    // 즉시 패배 막아야 하는 자리 (차선)
-                    else if (defenseScore >= 100000) totalScore = 1000000;
-
-                    // 오프닝 다양성을 위한 약간의 랜덤성
-                    totalScore += Math.random() * 5;
-
-                    if (totalScore > bestScore) {
-                        bestScore = totalScore;
-                        bestMoves = [{x, y}];
-                    } else if (totalScore === bestScore) {
-                        bestMoves.push({x, y});
-                    }
+                    let aScore = evaluatePoint(x, y, AI), dScore = evaluatePoint(x, y, HUMAN);
+                    let total = aScore + (dScore * 1.2) + Math.random() * 5;
+                    if (aScore >= 100000) total = 2000000;
+                    else if (dScore >= 100000) total = 1000000;
+                    if (total > bestScore) { bestScore = total; bestMoves = [{x, y}]; }
+                    else if (total === bestScore) bestMoves.push({x, y});
                 }
             }
         }
-
-        // 시작 시 중앙이 비어있으면 선점 (정석)
-        const center = Math.floor(GRID_SIZE / 2);
-        if (board[center][center] === 0 && bestScore < 100) {
-            return {x: center, y: center};
-        }
-
-        return bestMoves.length > 0 ? bestMoves[Math.floor(Math.random() * bestMoves.length)] : null;
+        let move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        if (move) placeStone(move.x, move.y);
     }
 
-    // 패턴 점수 계산 함수
     function evaluatePoint(x, y, player) {
         let score = 0;
-        const directions = [[1, 0], [0, 1], [1, 1], [1, -1]]; // 가로, 세로, 대각선(\), 대각선(/)
-
-        for (let [dx, dy] of directions) {
-            // (x,y)를 중심으로 반경 4칸의 패턴 문자열 생성
-            const lineStr = getLinePattern(x, y, dx, dy, player);
-            score += getPatternScore(lineStr);
-        }
-        return score;
-    }
-
-    function getLinePattern(x, y, dx, dy, player) {
-        let str = "";
-        // 앞뒤로 4칸씩 검사
-        for (let i = -4; i <= 4; i++) {
-            if (i === 0) {
-                str += "M"; // Me (현재 두려는 위치)
-            } else {
-                const nx = x + dx * i;
-                const ny = y + dy * i;
-                if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) {
-                    str += "X"; // 벽/가장자리
-                } else {
-                    const cell = board[ny][nx];
-                    if (cell === player) str += "P"; // 내 돌
-                    else if (cell === 0) str += "0"; // 빈칸
-                    else str += "E"; // 적 돌
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+        for (let [dx, dy] of dirs) {
+            let str = "";
+            for (let i = -4; i <= 4; i++) {
+                if (i === 0) str += "M";
+                else {
+                    let nx = x + dx * i, ny = y + dy * i;
+                    if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) str += "X";
+                    else if (board[ny][nx] === player) str += "P";
+                    else if (board[ny][nx] === 0) str += "0";
+                    else str += "E";
                 }
             }
+            if (/P{4}M|MP{4}|P{3}MP|PMP{3}|P{2}MP{2}/.test(str)) score += 100000;
+            else if (/0P{3}M0|0MP{3}0|0P{2}MP0|0PMP{2}0/.test(str)) score += 50000;
+            else if (/P{3}M|MP{3}|P{2}MP|PMP{2}/.test(str)) score += 10000;
+            else if (/P{2}0MP|PM0P{2}|P0PMP|PMP0P/.test(str)) score += 8000;
+            else if (/0P{2}M0|0MP{2}0|0PMP0/.test(str)) score += 5000;
+            else if (/0P0PM0|0MP0P0|0P0MP0/.test(str)) score += 4500;
         }
-        return str;
-    }
-
-    function getPatternScore(str) {
-        let score = 0;
-
-        // --- 5목 완성 (승리) ---
-        // PPPPM, MPPPP, PPMPP 등
-        if (/P{4}M|MP{4}|P{3}MP|PMP{3}|P{2}MP{2}/.test(str)) return 100000;
-
-        // --- 열린 4 (막지 않으면 다음 턴 승리) ---
-        // 0PPPPM0, 0MPPPP0 등
-        if (/0P{3}M0|0MP{3}0|0P{2}MP0|0PMP{2}0/.test(str)) return 50000;
-
-        // --- 닫힌 4 / 빈칸 낀 4 (즉시 막아야 함) ---
-        // PPPP0, 0PPPP, P0PPP, PP0PP 
-        if (/P{3}M|MP{3}|P{2}MP|PMP{2}/.test(str)) return 10000; 
-        if (/P{2}0MP|PM0P{2}|P0PMP|PMP0P/.test(str)) return 8000; // 빈칸 4 (강력함)
-
-        // --- 열린 3 (공격 기회) ---
-        // 00PPM00, 00MPP00, 0PMP0
-        if (/0P{2}M0|0MP{2}0|0PMP0/.test(str)) return 5000;
-
-        // --- 빈칸 낀 3 (함정수) ---
-        // 0P0PM0, 0M0PP0 등 (대각선 공격에서 자주 발생)
-        if (/0P0PM0|0MP0P0|0P0MP0/.test(str)) return 4500;
-
-        // --- 열린 2 ---
-        if (/00PM00|00MP00|0P0M0/.test(str)) return 500;
-
         return score;
     }
 
-    // ----------------------------------------------------
-    // --- AI 로직 끝 ---
-    // ----------------------------------------------------
-
-    // --- 3-3 금수 로직 (사람만 해당) ---
     function check33(x, y, player) {
-        board[y][x] = player; 
-        let openThreeCount = 0;
-        const directions = [[1,0], [0,1], [1,1], [1,-1]]; 
-
-        for(let d of directions) {
-            if(isDirectionOpenThree(x, y, player, d[0], d[1])) {
-                openThreeCount++;
+        board[y][x] = player;
+        let count = 0;
+        [[1,0], [0,1], [1,1], [1,-1]].forEach(([dx, dy]) => {
+            let str = "";
+            for (let i = -4; i <= 4; i++) {
+                let nx = x + dx * i, ny = y + dy * i;
+                if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) str += "X";
+                else str += (board[ny][nx] === player ? "P" : (board[ny][nx] === 0 ? "0" : "E"));
             }
-        }
-        board[y][x] = 0; // 원상복구
-        return openThreeCount >= 2;
-    }
-
-    function isDirectionOpenThree(x, y, player, dx, dy) {
-        let str = "";
-        for (let i = -4; i <= 4; i++) {
-            let nx = x + dx * i;
-            let ny = y + dy * i;
-            if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) str += "X"; 
-            else {
-                if (board[ny][nx] === player) str += "P";
-                else if (board[ny][nx] === 0) str += "0";
-                else str += "E"; 
-            }
-        }
-        // 금수 조건: 양쪽이 뚫린 3
-        if (str.includes("0PPP0")) return true;
-        if (str.includes("0P0PP0")) return true;
-        if (str.includes("0PP0P0")) return true;
-        return false;
+            if (str.includes("0PPP0") || str.includes("0P0PP0") || str.includes("0PP0P0")) count++;
+        });
+        board[y][x] = 0;
+        return count >= 2;
     }
 
     function placeStone(x, y) {
-        if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
-        if (board[y][x] !== 0) return;
-
-        // 3-3 체크 (사람일 때만 경고)
-        if(currentPlayer === HUMAN && check33(x, y, currentPlayer)) {
-            alert("흑돌은 3-3(쌍삼) 금수입니다!");
-            return; 
-        }
-
+        if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE || board[y][x] !== 0) return;
+        if (currentPlayer === HUMAN && check33(x, y, HUMAN)) { alert("3-3 금수입니다!"); return; }
         board[y][x] = currentPlayer;
-        
-        animatePlacement(x, y, currentPlayer);
         drawBoard();
-
-        if (checkWin(x, y, currentPlayer)) {
-            handleWin(currentPlayer);
-        } else {
-            // 턴 변경
-            currentPlayer = currentPlayer === 1 ? 2 : 1;
-            updateTurnUI();
-
-            // 다음이 AI면 딜레이 후 실행
-            if (gameActive && currentPlayer === AI) {
-                setTimeout(makeAiMove, 1000); 
-            }
-        }
+        if (checkWin(x, y, currentPlayer)) handleWin(currentPlayer);
+        else { currentPlayer = currentPlayer === 1 ? 2 : 1; updateTurnUI(); if (gameActive && currentPlayer === AI) setTimeout(makeAiMove, 1000); }
     }
 
-    function animatePlacement(x, y, player) {
-        const overlay = document.createElement('img');
-        overlay.src = player === 1 ? 'black_ggami.png' : 'white_kimchi.png';
-        overlay.style.position = 'absolute';
-        overlay.style.width = (CELL_SIZE * 2) + 'px';
-        overlay.style.height = (CELL_SIZE * 2) + 'px';
-        overlay.style.borderRadius = '50%';
-        overlay.style.left = (PADDING + x * CELL_SIZE - CELL_SIZE + CELL_SIZE/2) + 'px'; 
-        overlay.style.top = (PADDING + y * CELL_SIZE - CELL_SIZE + CELL_SIZE/2) + 'px';
-        overlay.style.transition = 'all 0.3s ease-out';
-        overlay.style.opacity = '0.8';
-        overlay.style.pointerEvents = 'none';
-
-        zoomLayer.appendChild(overlay);
-
-        requestAnimationFrame(() => {
-            overlay.style.transform = 'scale(1)'; 
-        });
-        
-        setTimeout(() => {
-            overlay.remove();
-        }, 300);
-    }
-
-    function checkWin(x, y, player) {
-        const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
-
-        for (let [dx, dy] of directions) {
+    function checkWin(x, y, p) {
+        return [[1,0],[0,1],[1,1],[1,-1]].some(([dx,dy]) => {
             let count = 1;
-            for (let i = 1; i < 5; i++) {
-                const nx = x + dx * i;
-                const ny = y + dy * i;
-                if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) break;
-                if (board[ny][nx] === player) count++;
-                else break;
-            }
-            for (let i = 1; i < 5; i++) {
-                const nx = x - dx * i;
-                const ny = y - dy * i;
-                if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) break;
-                if (board[ny][nx] === player) count++;
-                else break;
-            }
-            if (count >= 5) return true;
-        }
-        return false;
+            for (let i=1; i<5; i++) { let nx=x+dx*i, ny=y+dy*i; if (nx>=0 && nx<GRID_SIZE && ny>=0 && ny<GRID_SIZE && board[ny][nx]===p) count++; else break; }
+            for (let i=1; i<5; i++) { let nx=x-dx*i, ny=y-dy*i; if (nx>=0 && nx<GRID_SIZE && ny>=0 && ny<GRID_SIZE && board[ny][nx]===p) count++; else break; }
+            return count >= 5;
+        });
     }
 
-    function handleWin(winner) {
-        gameActive = false;
-        scores[winner]++;
-        winnerOfLastRound = winner;
-        
-        document.getElementById(`score-p${winner}`).innerText = `${scores[winner]} 승`;
-
-        if (scores[winner] >= 2) {
-            const finalScreen = document.getElementById('final-win-screen');
-            const finalText = document.getElementById('final-win-text');
-            const winnerName = winner === HUMAN ? "까미" : "김치";
-            
-            finalText.innerText = `${winnerName} 최종 우승!!!`;
-            finalScreen.classList.remove('hidden');
-
-            setTimeout(() => {
-                finalScreen.classList.add('hidden');
-                alert(`최종 우승: ${winnerName}! 축하합니다!`);
-                location.reload();
-            }, 3000);
-
+    function handleWin(w) {
+        gameActive = false; scores[w]++; winnerOfLastRound = w;
+        document.getElementById(`score-p${w}`).innerText = `${scores[w]} 승`;
+        if (scores[w] >= 2) {
+            document.getElementById('final-win-text').innerText = `${w===1?'까미':'김치'} 최종 우승!`;
+            document.getElementById('final-win-screen').classList.remove('hidden');
+            setTimeout(() => location.reload(), 4000);
         } else {
-            const screen = document.getElementById('ceremony-screen');
-            const img = document.getElementById('ceremony-img');
-            const txt = document.getElementById('ceremony-text');
-
-            screen.classList.remove('hidden');
-            
-            if (winner === HUMAN) { 
-                img.src = 'ggam-5.png'; 
-                txt.innerText = "아싸!";
-            } else { 
-                img.src = 'kimchi-o2.png'; 
-                txt.innerText = "훗, 당연하지!";
-            }
-
-            setTimeout(() => {
-                screen.classList.add('hidden');
-                round++;
-                resetBoard();
-                showCoinToss(); 
-            }, 3000);
+            document.getElementById('ceremony-img').src = w===1 ? 'ggam-5.png' : 'kimchi-o2.png';
+            document.getElementById('ceremony-text').innerText = w===1 ? "아싸!" : "훗, 당연하지!";
+            document.getElementById('ceremony-screen').classList.remove('hidden');
+            setTimeout(() => { document.getElementById('ceremony-screen').classList.add('hidden'); round++; resetBoard(); showCoinToss(); }, 3000);
         }
     }
 
-    function resetBoard() {
-        board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
-        drawBoard();
-    }
+    function resetBoard() { board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0)); drawBoard(); }
 
-    /* --- 줌 & 팬 (Zoom & Pan) --- */
-    const container = document.getElementById('board-container');
-    container.addEventListener('touchstart', handleTouchStart, {passive: false});
-    container.addEventListener('touchmove', handleTouchMove, {passive: false});
-    container.addEventListener('touchend', handleTouchEnd);
+    /* --- 줌 & 팬 로직 --- */
+    container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) { lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+        else { lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
+    }, {passive: false});
 
-    function handleTouchStart(e) {
-        if (e.touches.length === 2) {
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            lastDist = Math.hypot(dx, dy);
-        } else if (e.touches.length === 1 && scale > 1) {
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
-        }
-    }
-
-    function handleTouchMove(e) {
+    container.addEventListener('touchmove', (e) => {
         e.preventDefault();
         if (e.touches.length === 2) {
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            const dist = Math.hypot(dx, dy);
-            const factor = dist / lastDist;
-            let newScale = scale * factor;
-            newScale = Math.max(1, Math.min(newScale, 3)); 
-            scale = newScale;
+            let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            scale = Math.max(1, Math.min(scale * (dist / lastDist), 3));
             lastDist = dist;
-            updateTransform();
-        } else if (e.touches.length === 1 && scale > 1) {
-            const dx = e.touches[0].clientX - lastTouchX;
-            const dy = e.touches[0].clientY - lastTouchY;
-            panX += dx; panY += dy;
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
-            limitPan();
-            updateTransform();
+        } else if (scale > 1) {
+            panX += (e.touches[0].clientX - lastTouchX); panY += (e.touches[0].clientY - lastTouchY);
+            lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY;
+            let limit = (scale - 1) * (BOARD_PIXEL_SIZE / 2);
+            panX = Math.max(-limit, Math.min(limit, panX)); panY = Math.max(-limit, Math.min(limit, panY));
         }
-    }
-
-    function handleTouchEnd(e) {}
-    function limitPan() {
-        const maxPan = (scale - 1) * (BOARD_PIXEL_SIZE / 2);
-        panX = Math.max(-maxPan, Math.min(maxPan, panX));
-        panY = Math.max(-maxPan, Math.min(maxPan, panY));
-    }
-    function updateTransform() {
         zoomLayer.style.transform = `scale(${scale}) translate(${panX / scale}px, ${panY / scale}px)`;
-    }
+    }, {passive: false});
+
+    // 화면채움 및 리셋 기능
     function toggleFullscreenAndReset() {
-        if (scale > 1) {
-            scale = 1; panX = 0; panY = 0; updateTransform(); return; 
-        }
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => console.log(err));
-        } else {
-            if (document.exitFullscreen) document.exitFullscreen();
-        }
+        if (scale > 1) { scale = 1; panX = 0; panY = 0; zoomLayer.style.transform = `scale(1) translate(0,0)`; return; }
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => console.log(e));
+        else if (document.exitFullscreen) document.exitFullscreen();
     }
 
     initCanvas();
