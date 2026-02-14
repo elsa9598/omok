@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>까미 vs 김치: 운명의 오목 한판 (19x19)</title>
+    <title>천하무적의 김치와오목 3판2승 (19x19)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -310,8 +310,8 @@
         </div>
 
         <div id="start-screen" class="overlay-screen">
-            <h1 style="font-size: 5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px #000;">까미 vs 김치</h1>
-            <button class="yellow-btn" onclick="handleStartGame()">게임 시작</button>
+            <h1 style="font-size: 5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px #000;">까미(나) vs 김치</h1>
+            <button class="yellow-btn" onclick="handleStartGame()">게임 3판2승 시작</button>
         </div>
 
         <div id="toss-screen" class="overlay-screen hidden">
@@ -436,16 +436,17 @@
             }
         }
 
-        // 백돌(AI) 깜빡임 효과
+        // 백돌(AI) 깜빡임 효과 (lastMove가 있을 때 계속 그리기)
         if (lastMove) {
             const cx = PADDING + lastMove.x * CELL_SIZE;
             const cy = PADDING + lastMove.y * CELL_SIZE;
 
             ctx.save();
             ctx.beginPath();
+            // 백돌 위에 금색 테두리/빛 효과
             ctx.arc(cx, cy, CELL_SIZE * 0.48, 0, Math.PI * 2);
             ctx.lineWidth = 4;
-            ctx.strokeStyle = `rgba(255, 215, 0, ${blinkAlpha})`;
+            ctx.strokeStyle = `rgba(255, 215, 0, ${blinkAlpha})`; // 금색 + 투명도 변화
             ctx.stroke();
             ctx.restore();
         }
@@ -489,6 +490,7 @@
         ctx.restore();
     }
 
+    // ★ 수정된 startBlinking: 시간 제한(setTimeout) 없이 계속 깜빡이게 변경 ★
     function startBlinking(x, y) {
         if (blinkInterval) clearInterval(blinkInterval);
         
@@ -502,12 +504,8 @@
             if (blinkAlpha >= 1.0) blinkDir = -0.1;
             drawBoard();
         }, 50);
-
-        setTimeout(() => {
-            if (blinkInterval) clearInterval(blinkInterval);
-            lastMove = null;
-            drawBoard();
-        }, 2000);
+        
+        // setTimeout 제거됨: 사용자가 둘 때까지 무한 반복
     }
 
     function updateTurnUI() {
@@ -709,6 +707,7 @@
         return false;
     }
 
+    // ★ 수정된 placeStone: 흑돌 착수 시 반짝임 해제 로직 추가 ★
     function placeStone(x, y) {
         if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
         if (board[y][x] !== 0) return;
@@ -718,16 +717,23 @@
             return; 
         }
 
+        // [중요] 흑돌(나)이 착수할 때, 기존에 반짝이던 효과를 제거함
+        if (currentPlayer === HUMAN) {
+            if (blinkInterval) {
+                clearInterval(blinkInterval);
+                blinkInterval = null;
+            }
+            lastMove = null; // 더 이상 그리지 않음
+        }
+
         board[y][x] = currentPlayer;
         
         if (currentPlayer === HUMAN) playSound(sndBlack);
         else playSound(sndWhite);
 
+        // 백돌(AI)이 착수하면 반짝임 시작
         if (currentPlayer === AI) {
             startBlinking(x, y);
-        } else {
-            if (blinkInterval) clearInterval(blinkInterval);
-            lastMove = null; 
         }
 
         drawBoard(); 
@@ -772,7 +778,6 @@
         return false;
     }
 
-    // ★ 승리 처리 함수 수정 (요청사항 반영) ★
     function handleWin(winner) {
         gameActive = false;
         scores[winner]++;
@@ -788,29 +793,24 @@
             const finalImg = document.getElementById('final-win-img'); 
             const finalText = document.getElementById('final-win-text');
             
-            // 승자에 따른 이미지와 텍스트 설정
             if (winner === HUMAN) {
-                // 흑돌(까미) 우승
                 finalImg.src = 'ggam_win.png';
                 finalText.innerText = "내가 이겼어 어쩔래!!!";
             } else {
-                // 백돌(김치/AI) 우승
                 finalImg.src = 'kimchi_win.png';
                 finalText.innerText = "김치가 이겼어!!!";
             }
 
             finalScreen.classList.remove('hidden');
 
-            // 5초 유지 후 리로드
+            // 5초 후 재시작 (알림창 없음)
             setTimeout(() => {
                 finalScreen.classList.add('hidden');
-                // alert는 사용자 확인용 (원치 않으면 제거 가능)
-                alert(`게임 종료! 승리: ${winner === HUMAN ? "까미" : "김치"}`);
                 location.reload();
             }, 5000); 
 
         } else {
-            // 라운드 승리 (아직 2승 아님)
+            // 라운드 승리
             playSound(sndRoundWin);
 
             const screen = document.getElementById('ceremony-screen');
@@ -837,6 +837,13 @@
     }
 
     function resetBoard() {
+        // 보드 초기화 시 반짝임도 완전히 제거
+        if (blinkInterval) {
+            clearInterval(blinkInterval);
+            blinkInterval = null;
+        }
+        lastMove = null;
+
         board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
         drawBoard();
     }
