@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <title>까미 vs 김치: 운명의 오목 한판</title>
     <meta property="og:type" content="website">
@@ -16,30 +16,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap" rel="stylesheet">
 
     <style>
-        /* --- 기본 설정 --- */
-        body {
-            margin: 0;
+        /* [1. 화면 강제 맞춤을 위한 기본 설정 (고스톱 게임 로직 이식)] */
+        html, body {
+            margin: 0; 
             padding: 0;
+            width: 100%; 
+            height: 100%;
             background-color: #222;
-            color: white;
+            overflow: hidden; /* 스크롤 방지 */
+            position: fixed; 
+            touch-action: none; 
             font-family: 'Gamja Flower', cursive;
-            font-size: 1.7rem;
-            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 게임 전체를 감싸는 래퍼 (중앙 정렬) */
+        #game-wrapper {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            touch-action: none; 
+            overflow: hidden;
+            z-index: 1;
         }
 
+        /* 실제 게임 컨테이너 (스케일링 대상) */
         .game-container {
+            /* 기본 해상도 설정 (이 크기를 기준으로 확대/축소됨) */
+            /* JS에서 가로/세로 모드에 따라 동적으로 width/height가 설정됩니다 */
             display: flex;
-            width: 100%;
-            height: 100%;
-            max-width: 1600px;
+            background-color: #222;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            transform-origin: center center; /* 중앙 기준 확대/축소 */
+            flex-shrink: 0;
         }
 
-        /* --- 플레이어 프레임 --- */
+        /* --- 기존 스타일 유지 --- */
         .player-frame {
             flex: 1;
             display: flex;
@@ -78,9 +94,9 @@
             font-size: 1.8rem;
             font-weight: bold;
             text-shadow: 1px 1px 2px #000;
+            white-space: nowrap; /* 이름 줄바꿈 방지 */
         }
 
-        /* --- 중앙 보드 프레임 --- */
         .board-frame {
             flex: 2;
             position: relative;
@@ -93,7 +109,7 @@
             border-right: 2px solid #555;
         }
 
-        /* --- 카드 (캐릭터 & 점수) : 확대 기능 --- */
+        /* 카드 확대 효과 */
         .player-info-box {
             display: flex;
             flex-direction: column;
@@ -134,9 +150,9 @@
             font-size: 1.5rem;
             color: #ffd700;
             font-weight: bold;
+            white-space: nowrap;
         }
 
-        /* 턴 표시 */
         .active-turn .player-info-box {
             border-color: #ffd700;
             background: rgba(255, 215, 0, 0.1);
@@ -155,7 +171,6 @@
             100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
         }
 
-        /* --- 보드 --- */
         #game-zoom-layer {
             position: relative;
             transform-origin: center center;
@@ -172,7 +187,6 @@
             display: block;
         }
 
-        /* --- 오버레이 화면 --- */
         .overlay-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -245,7 +259,6 @@
             margin-bottom: 20px;
         }
 
-        /* --- 전체화면 아이콘 버튼 --- */
         .fullscreen-btn {
             position: absolute;
             bottom: 20px;
@@ -275,18 +288,18 @@
         @keyframes popUp { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        /* --- 모바일 반응형 --- */
+        /* --- 모바일 반응형 (내부 배치만 담당) --- */
         @media (max-width: 768px) {
             .game-container { flex-direction: column; }
             
             .player-frame { 
                 flex-direction: row; 
-                flex: 0 0 70px; 
+                flex: 0 0 80px; /* 고정 높이 */
                 padding: 5px 10px; 
             }
             
-            .mini-player-name { font-size: 1.3rem; }
-            .mini-profile-img { width: 35px; height: 35px; }
+            .mini-player-name { font-size: 1.5rem; }
+            .mini-profile-img { width: 40px; height: 40px; }
             
             .player-info-box { 
                 width: auto; 
@@ -316,64 +329,66 @@
 </head>
 <body>
 
-<div class="game-container">
-    <div class="player-frame left" id="frame-p1">
-        <div class="player-top-info">
-            <img src="black_ggami.png" class="mini-profile-img">
-            <div class="mini-player-name">까미 (나)</div>
-        </div>
-        <div class="player-info-box">
-            <img src="ggami_2.png" class="full-body-img">
-            <div class="score-badge" id="score-p1">0 승</div>
-        </div>
-    </div>
-
-    <div class="board-frame" id="board-container">
-        <div id="game-zoom-layer">
-            <canvas id="go-board" width="600" height="600"></canvas>
-        </div>
-
-        <div id="start-screen" class="overlay-screen">
-            <h1 style="font-size: 5rem; margin-bottom: 20px;">까미 vs 김치</h1>
-            <button class="yellow-btn" onclick="showCoinToss()">게임 시작</button>
-        </div>
-
-        <div id="toss-screen" class="overlay-screen hidden">
-            <h2 style="margin-bottom: 30px; font-size: 3.5rem;">운명의 선택</h2>
-            <div class="coin-toss-btn" id="coin-btn" onclick="decideFirstTurn()">
-                <span>터치!</span>
-                <img id="toss-result-img" src="">
+<div id="game-wrapper">
+    <div class="game-container">
+        <div class="player-frame left" id="frame-p1">
+            <div class="player-top-info">
+                <img src="black_ggami.png" class="mini-profile-img">
+                <div class="mini-player-name">까미 (나)</div>
             </div>
-            <p id="toss-msg" style="margin-top: 20px; font-size: 1.8rem;">터치해서 선공을 정하세요!</p>
-        </div>
-
-        <div id="ceremony-screen" class="overlay-screen hidden">
-            <div class="ceremony-content">
-                <img id="ceremony-img" src="" class="ceremony-img">
-                <div id="ceremony-text" class="ceremony-text"></div>
+            <div class="player-info-box">
+                <img src="ggami_2.png" class="full-body-img">
+                <div class="score-badge" id="score-p1">0 승</div>
             </div>
         </div>
 
-        <div id="final-win-screen" class="overlay-screen hidden">
-            <div class="ceremony-content">
-                <img src="sangkim.png" class="final-win-img">
-                <div id="final-win-text" class="ceremony-text"></div>
+        <div class="board-frame" id="board-container">
+            <div id="game-zoom-layer">
+                <canvas id="go-board" width="600" height="600"></canvas>
             </div>
-        </div>
-        
-        <button class="fullscreen-btn" onclick="toggleFullscreenAndReset()" title="화면 채움 / 리셋">
-            ⛶
-        </button>
-    </div>
 
-    <div class="player-frame right" id="frame-p2">
-        <div class="player-top-info">
-            <img src="white_kimchi.png" class="mini-profile-img">
-            <div class="mini-player-name">김치 (AI)</div>
+            <div id="start-screen" class="overlay-screen">
+                <h1 style="font-size: 5rem; margin-bottom: 20px;">까미 vs 김치</h1>
+                <button class="yellow-btn" onclick="showCoinToss()">게임 시작</button>
+            </div>
+
+            <div id="toss-screen" class="overlay-screen hidden">
+                <h2 style="margin-bottom: 30px; font-size: 3.5rem;">운명의 선택</h2>
+                <div class="coin-toss-btn" id="coin-btn" onclick="decideFirstTurn()">
+                    <span>터치!</span>
+                    <img id="toss-result-img" src="">
+                </div>
+                <p id="toss-msg" style="margin-top: 20px; font-size: 1.8rem;">터치해서 선공을 정하세요!</p>
+            </div>
+
+            <div id="ceremony-screen" class="overlay-screen hidden">
+                <div class="ceremony-content">
+                    <img id="ceremony-img" src="" class="ceremony-img">
+                    <div id="ceremony-text" class="ceremony-text"></div>
+                </div>
+            </div>
+
+            <div id="final-win-screen" class="overlay-screen hidden">
+                <div class="ceremony-content">
+                    <img src="sangkim.png" class="final-win-img">
+                    <div id="final-win-text" class="ceremony-text"></div>
+                </div>
+            </div>
+            
+            <button class="fullscreen-btn" onclick="toggleFullscreenAndReset()" title="화면 채움 / 리셋">
+                ⛶
+            </button>
         </div>
-        <div class="player-info-box">
-            <img src="kimchi_3.png" class="full-body-img">
-            <div class="score-badge" id="score-p2">0 승</div>
+
+        <div class="player-frame right" id="frame-p2">
+            <div class="player-top-info">
+                <img src="white_kimchi.png" class="mini-profile-img">
+                <div class="mini-player-name">김치 (AI)</div>
+            </div>
+            <div class="player-info-box">
+                <img src="kimchi_3.png" class="full-body-img">
+                <div class="score-badge" id="score-p2">0 승</div>
+            </div>
         </div>
     </div>
 </div>
@@ -402,14 +417,13 @@
     const imgBlack = new Image(); imgBlack.src = 'black_ggami.png';
     const imgWhite = new Image(); imgWhite.src = 'white_kimchi.png';
     
-    // --- 사운드 객체 생성 ---
+    // --- 사운드 객체 ---
     const sndStart = new Audio('start.mp3');
     const sndBlack = new Audio('clack.mp3');
     const sndWhite = new Audio('clack_1.mp3');
     const sndRoundWin = new Audio('winbrass.mp3');
     const sndFinalWin = new Audio('fanfare.mp3');
 
-    // 사운드 재생 헬퍼 (빠른 클릭 대응)
     function playSound(audio) {
         audio.currentTime = 0; 
         audio.play().catch(e => console.log('Sound play blocked', e));
@@ -418,6 +432,52 @@
     let scale = 1;
     let panX = 0; let panY = 0;
     let lastTouchX = 0; let lastTouchY = 0; let lastDist = 0;
+
+    /* ---------------------------------------------------
+       [화면 강제 맞춤 로직 (Gostop 게임에서 이식)]
+       --------------------------------------------------- */
+    function resizeGame() {
+        const container = document.querySelector('.game-container');
+        const winW = window.innerWidth;
+        const winH = window.innerHeight;
+
+        // 가로/세로 모드 감지하여 기준 해상도(Target Size) 변경
+        // 이렇게 해야 내부 CSS (@media max-width:768px)가 올바르게 작동함
+        const isPortrait = winH > winW;
+        
+        let targetW, targetH;
+        
+        if (isPortrait) {
+            // 세로 모드 (모바일) 기준 해상도 설정
+            // 720px로 설정하여 CSS의 @media (max-width: 768px)가 발동되게 함
+            targetW = 720; 
+            targetH = 1280; 
+        } else {
+            // 가로 모드 (PC/태블릿) 기준 해상도 설정
+            targetW = 1600; 
+            targetH = 900; 
+        }
+
+        // 컨테이너 크기 강제 설정
+        container.style.width = targetW + 'px';
+        container.style.height = targetH + 'px';
+
+        // 윈도우 크기에 맞춰 스케일 계산 (비율 유지)
+        const scale = Math.min(winW / targetW, winH / targetH);
+        
+        // 스케일 적용
+        container.style.transform = `scale(${scale})`;
+    }
+
+    // 리사이즈 이벤트 리스너 등록
+    window.addEventListener('resize', resizeGame);
+    window.addEventListener('orientationchange', () => { setTimeout(resizeGame, 200); });
+    window.onload = () => {
+        resizeGame();
+        initCanvas();
+    };
+
+    /* --------------------------------------------------- */
 
     function initCanvas() {
         canvas.width = BOARD_PIXEL_SIZE;
@@ -480,7 +540,7 @@
         document.getElementById('start-screen').classList.add('hidden');
         if (round === 1) document.getElementById('toss-screen').classList.remove('hidden');
         else {
-            playSound(sndStart); // 2라운드부터는 바로 시작음
+            playSound(sndStart); 
             startRound(winnerOfLastRound || 1);
         }
     }
@@ -492,10 +552,9 @@
         document.querySelector('#coin-btn span').style.display = 'none';
         document.getElementById('toss-msg').innerText = `${rand === 1 ? '까미(나)' : '김치(AI)'} 선공!`;
         
-        // 1초 뒤 게임 시작 (기존 1.5초에서 단축)
         setTimeout(() => {
             document.getElementById('toss-screen').classList.add('hidden');
-            playSound(sndStart); // 게임 시작 효과음
+            playSound(sndStart);
             startRound(rand);
         }, 1000);
     }
@@ -509,13 +568,15 @@
 
     canvas.addEventListener('click', (e) => {
         if (!gameActive || currentPlayer === AI) return;
+        
+        // getBoundingClientRect는 transform된 크기를 반환하므로 좌표 계산은 그대로 유지 가능
         const rect = canvas.getBoundingClientRect();
         const gx = Math.round(((e.clientX - rect.left) * (canvas.width / rect.width) - PADDING) / CELL_SIZE);
         const gy = Math.round(((e.clientY - rect.top) * (canvas.height / rect.height) - PADDING) / CELL_SIZE);
         placeStone(gx, gy);
     });
 
-    // --- 강력한 AI 알고리즘 ---
+    // --- AI 알고리즘 ---
     function makeAiMove() {
         if (!gameActive) return;
         let bestScore = -Infinity, bestMoves = [];
@@ -582,7 +643,6 @@
         
         board[y][x] = currentPlayer;
         
-        // --- 돌 놓는 사운드 재생 ---
         if (currentPlayer === HUMAN) playSound(sndBlack);
         else playSound(sndWhite);
 
@@ -605,13 +665,11 @@
         document.getElementById(`score-p${w}`).innerText = `${scores[w]} 승`;
         
         if (scores[w] >= 2) {
-            // 최종 승리
             playSound(sndFinalWin);
             document.getElementById('final-win-text').innerText = `${w===1?'까미':'김치'} 최종 우승!`;
             document.getElementById('final-win-screen').classList.remove('hidden');
             setTimeout(() => location.reload(), 4000);
         } else {
-            // 라운드 승리
             playSound(sndRoundWin);
             document.getElementById('ceremony-img').src = w===1 ? 'ggam-5.png' : 'kimchi-o2.png';
             document.getElementById('ceremony-text').innerText = w===1 ? "아싸!" : "훗, 당연하지!";
@@ -623,12 +681,13 @@
     function resetBoard() { board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0)); drawBoard(); }
 
     /* --- 줌 & 팬 로직 --- */
-    container.addEventListener('touchstart', (e) => {
+    const containerEl = document.getElementById('board-container'); // 보드 프레임 기준
+    containerEl.addEventListener('touchstart', (e) => {
         if (e.touches.length === 2) { lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
         else { lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY; }
     }, {passive: false});
 
-    container.addEventListener('touchmove', (e) => {
+    containerEl.addEventListener('touchmove', (e) => {
         e.preventDefault();
         if (e.touches.length === 2) {
             let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
@@ -643,7 +702,6 @@
         zoomLayer.style.transform = `scale(${scale}) translate(${panX / scale}px, ${panY / scale}px)`;
     }, {passive: false});
 
-    // 화면채움 및 리셋 기능
     function toggleFullscreenAndReset() {
         if (scale > 1) { 
             scale = 1; panX = 0; panY = 0; 
@@ -656,8 +714,6 @@
             if (document.exitFullscreen) document.exitFullscreen();
         }
     }
-
-    initCanvas();
 </script>
 </body>
 </html>
