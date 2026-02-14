@@ -16,6 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap" rel="stylesheet">
 
     <style>
+        /* --- 기본 설정 --- */
         body {
             margin: 0;
             padding: 0;
@@ -28,7 +29,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            touch-action: none;
+            touch-action: none; 
         }
 
         .game-container {
@@ -38,6 +39,7 @@
             max-width: 1600px;
         }
 
+        /* --- 플레이어 프레임 --- */
         .player-frame {
             flex: 1;
             display: flex;
@@ -78,6 +80,7 @@
             text-shadow: 1px 1px 2px #000;
         }
 
+        /* --- 중앙 보드 프레임 --- */
         .board-frame {
             flex: 2;
             position: relative;
@@ -90,6 +93,7 @@
             border-right: 2px solid #555;
         }
 
+        /* --- 카드 (캐릭터 & 점수) : 확대 기능 --- */
         .player-info-box {
             display: flex;
             flex-direction: column;
@@ -101,8 +105,17 @@
             border-radius: 20px;
             background: rgba(0, 0, 0, 0.3);
             border: 3px solid transparent;
-            transition: all 0.3s ease;
-            margin-bottom: 0; 
+            margin-bottom: 0;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+            cursor: pointer;
+            transform-origin: bottom center; 
+        }
+
+        .player-info-box:hover, .player-info-box:active {
+            transform: scale(1.15); 
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
 
         .full-body-img {
@@ -111,6 +124,7 @@
             object-fit: contain;
             filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
             margin-bottom: 10px;
+            pointer-events: none; 
         }
 
         .score-badge {
@@ -122,6 +136,7 @@
             font-weight: bold;
         }
 
+        /* 턴 표시 */
         .active-turn .player-info-box {
             border-color: #ffd700;
             background: rgba(255, 215, 0, 0.1);
@@ -129,12 +144,18 @@
             animation: pulse-border 1.5s infinite;
         }
         
+        .active-turn .player-info-box:hover, .active-turn .player-info-box:active {
+             animation: none; 
+             border-color: #fff;
+        }
+
         @keyframes pulse-border {
             0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
             50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.7); }
             100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
         }
 
+        /* --- 보드 --- */
         #game-zoom-layer {
             position: relative;
             transform-origin: center center;
@@ -151,6 +172,7 @@
             display: block;
         }
 
+        /* --- 오버레이 화면 --- */
         .overlay-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -182,6 +204,11 @@
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
             transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .yellow-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.6);
         }
 
         .coin-toss-btn {
@@ -218,28 +245,28 @@
             margin-bottom: 20px;
         }
 
-        /* --- 화면채움 버튼 스타일 --- */
+        /* --- 전체화면 아이콘 버튼 --- */
         .fullscreen-btn {
             position: absolute;
             bottom: 20px;
             right: 20px;
+            width: 60px;
+            height: 60px;
             background-color: #ffd700;
             color: #000;
-            font-family: 'Gamja Flower', cursive;
-            font-size: 1.4rem;
-            font-weight: bold;
-            padding: 12px 20px;
             border: 3px solid #000;
-            border-radius: 15px;
+            border-radius: 50%;
             cursor: pointer;
             z-index: 200;
             display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            font-size: 2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            outline: none;
         }
-
+        
         .fullscreen-btn:active {
             transform: scale(0.9);
             box-shadow: 0 2px 5px rgba(0,0,0,0.4);
@@ -248,21 +275,41 @@
         @keyframes popUp { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
+        /* --- 모바일 반응형 --- */
         @media (max-width: 768px) {
             .game-container { flex-direction: column; }
-            .player-frame { flex-direction: row; flex: 0 0 80px; padding: 5px 10px; }
-            .mini-player-name { font-size: 1.4rem; }
-            .mini-profile-img { width: 40px; height: 40px; }
-            .player-info-box { width: auto; padding: 5px; flex-direction: row; }
+            
+            .player-frame { 
+                flex-direction: row; 
+                flex: 0 0 70px; 
+                padding: 5px 10px; 
+            }
+            
+            .mini-player-name { font-size: 1.3rem; }
+            .mini-profile-img { width: 35px; height: 35px; }
+            
+            .player-info-box { 
+                width: auto; 
+                padding: 5px; 
+                flex-direction: row; 
+                transform-origin: center;
+            }
+            .player-info-box:hover, .player-info-box:active {
+                transform: scale(1.1); 
+            }
+
             .full-body-img { display: none; } 
+            
             .board-frame { flex: 1; border: none; }
             #go-board { border-width: 5px; }
-            /* 모바일에서 버튼 위치 조정 */
+            
             .fullscreen-btn {
                 bottom: 10px;
                 right: 10px;
-                padding: 8px 15px;
-                font-size: 1.2rem;
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+                opacity: 0.9; 
             }
         }
     </style>
@@ -314,8 +361,8 @@
             </div>
         </div>
         
-        <button class="fullscreen-btn" onclick="toggleFullscreenAndReset()">
-            <span>📺 화면채움</span>
+        <button class="fullscreen-btn" onclick="toggleFullscreenAndReset()" title="화면 채움 / 리셋">
+            ⛶
         </button>
     </div>
 
@@ -332,6 +379,7 @@
 </div>
 
 <script>
+    /* --- 변수 설정 --- */
     const canvas = document.getElementById('go-board');
     const ctx = canvas.getContext('2d');
     const zoomLayer = document.getElementById('game-zoom-layer');
@@ -354,6 +402,19 @@
     const imgBlack = new Image(); imgBlack.src = 'black_ggami.png';
     const imgWhite = new Image(); imgWhite.src = 'white_kimchi.png';
     
+    // --- 사운드 객체 생성 ---
+    const sndStart = new Audio('start.mp3');
+    const sndBlack = new Audio('clack.mp3');
+    const sndWhite = new Audio('clack_1.mp3');
+    const sndRoundWin = new Audio('winbrass.mp3');
+    const sndFinalWin = new Audio('fanfare.mp3');
+
+    // 사운드 재생 헬퍼 (빠른 클릭 대응)
+    function playSound(audio) {
+        audio.currentTime = 0; 
+        audio.play().catch(e => console.log('Sound play blocked', e));
+    }
+
     let scale = 1;
     let panX = 0; let panY = 0;
     let lastTouchX = 0; let lastTouchY = 0; let lastDist = 0;
@@ -418,7 +479,10 @@
     function showCoinToss() {
         document.getElementById('start-screen').classList.add('hidden');
         if (round === 1) document.getElementById('toss-screen').classList.remove('hidden');
-        else startRound(winnerOfLastRound || 1);
+        else {
+            playSound(sndStart); // 2라운드부터는 바로 시작음
+            startRound(winnerOfLastRound || 1);
+        }
     }
 
     function decideFirstTurn() {
@@ -427,10 +491,13 @@
         document.getElementById('toss-result-img').style.display = 'block';
         document.querySelector('#coin-btn span').style.display = 'none';
         document.getElementById('toss-msg').innerText = `${rand === 1 ? '까미(나)' : '김치(AI)'} 선공!`;
+        
+        // 1초 뒤 게임 시작 (기존 1.5초에서 단축)
         setTimeout(() => {
             document.getElementById('toss-screen').classList.add('hidden');
+            playSound(sndStart); // 게임 시작 효과음
             startRound(rand);
-        }, 1500);
+        }, 1000);
     }
 
     function startRound(startPlayer) {
@@ -512,7 +579,13 @@
     function placeStone(x, y) {
         if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE || board[y][x] !== 0) return;
         if (currentPlayer === HUMAN && check33(x, y, HUMAN)) { alert("3-3 금수입니다!"); return; }
+        
         board[y][x] = currentPlayer;
+        
+        // --- 돌 놓는 사운드 재생 ---
+        if (currentPlayer === HUMAN) playSound(sndBlack);
+        else playSound(sndWhite);
+
         drawBoard();
         if (checkWin(x, y, currentPlayer)) handleWin(currentPlayer);
         else { currentPlayer = currentPlayer === 1 ? 2 : 1; updateTurnUI(); if (gameActive && currentPlayer === AI) setTimeout(makeAiMove, 1000); }
@@ -530,11 +603,16 @@
     function handleWin(w) {
         gameActive = false; scores[w]++; winnerOfLastRound = w;
         document.getElementById(`score-p${w}`).innerText = `${scores[w]} 승`;
+        
         if (scores[w] >= 2) {
+            // 최종 승리
+            playSound(sndFinalWin);
             document.getElementById('final-win-text').innerText = `${w===1?'까미':'김치'} 최종 우승!`;
             document.getElementById('final-win-screen').classList.remove('hidden');
             setTimeout(() => location.reload(), 4000);
         } else {
+            // 라운드 승리
+            playSound(sndRoundWin);
             document.getElementById('ceremony-img').src = w===1 ? 'ggam-5.png' : 'kimchi-o2.png';
             document.getElementById('ceremony-text').innerText = w===1 ? "아싸!" : "훗, 당연하지!";
             document.getElementById('ceremony-screen').classList.remove('hidden');
@@ -567,9 +645,16 @@
 
     // 화면채움 및 리셋 기능
     function toggleFullscreenAndReset() {
-        if (scale > 1) { scale = 1; panX = 0; panY = 0; zoomLayer.style.transform = `scale(1) translate(0,0)`; return; }
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => console.log(e));
-        else if (document.exitFullscreen) document.exitFullscreen();
+        if (scale > 1) { 
+            scale = 1; panX = 0; panY = 0; 
+            zoomLayer.style.transform = `scale(1) translate(0,0)`; 
+            return; 
+        }
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(e => console.log(e));
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+        }
     }
 
     initCanvas();
