@@ -702,8 +702,10 @@
         if (currentPlayer === HUMAN) playSound(sndBlack);
         else playSound(sndWhite);
 
-        animatePlacement(x, y, currentPlayer);
-        drawBoard();
+        // --- 수정됨: 애니메이션 효과 제거 ---
+        // animatePlacement(x, y, currentPlayer); // 이 부분이 삭제되었습니다.
+        
+        drawBoard(); // 돌을 즉시 그립니다.
 
         if (checkWin(x, y, currentPlayer)) {
             handleWin(currentPlayer);
@@ -719,29 +721,7 @@
         }
     }
 
-    function animatePlacement(x, y, player) {
-        const overlay = document.createElement('img');
-        overlay.src = player === 1 ? 'black_ggami.png' : 'white_kimchi.png';
-        overlay.style.position = 'absolute';
-        overlay.style.width = (CELL_SIZE * 2) + 'px';
-        overlay.style.height = (CELL_SIZE * 2) + 'px';
-        overlay.style.borderRadius = '50%';
-        overlay.style.left = (PADDING + x * CELL_SIZE - CELL_SIZE + CELL_SIZE/2) + 'px'; 
-        overlay.style.top = (PADDING + y * CELL_SIZE - CELL_SIZE + CELL_SIZE/2) + 'px';
-        overlay.style.transition = 'all 0.3s ease-out';
-        overlay.style.opacity = '0.8';
-        overlay.style.pointerEvents = 'none';
-
-        zoomLayer.appendChild(overlay);
-
-        requestAnimationFrame(() => {
-            overlay.style.transform = 'scale(1)'; 
-        });
-        
-        setTimeout(() => {
-            overlay.remove();
-        }, 300);
-    }
+    /* --- 수정됨: animatePlacement 함수 전체 삭제됨 --- */
 
     function checkWin(x, y, player) {
         const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
