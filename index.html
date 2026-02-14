@@ -23,7 +23,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* 중요: 아이패드/모바일 브라우저 주소창 대응 */
             height: 100vh;
             height: 100dvh; 
             touch-action: none;
@@ -34,19 +33,18 @@
             display: flex;
             width: 100%;
             height: 100%;
-            max-width: 100%; /* 화면 전체 사용 */
+            max-width: 100%;
         }
 
-        /* 플레이어 프레임 (좌우 패널) */
+        /* 플레이어 프레임 */
         .player-frame {
-            /* 아이패드에서 너무 좁아지지 않도록 설정 */
             flex: 0 0 20%; 
             min-width: 160px; 
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start; 
-            padding: 40px 10px; /* 좌우 여백 조정 */
+            padding: 40px 10px;
             background: #333;
             box-sizing: border-box;
             transition: all 0.3s;
@@ -65,7 +63,6 @@
         }
 
         .mini-profile-img {
-            /* 화면 크기에 따라 이미지 크기 유동적 조절 */
             width: 10vw; 
             height: 10vw;
             max-width: 120px;
@@ -81,11 +78,11 @@
         }
 
         .mini-player-name {
-            font-size: 2.5rem; /* 글자 크기 약간 조정 */
+            font-size: 2.5rem;
             font-weight: bold;
             text-shadow: 2px 2px 4px #000;
             margin-top: 10px;
-            word-break: keep-all; /* 이름 줄바꿈 방지 */
+            word-break: keep-all;
         }
 
         .score-badge {
@@ -97,6 +94,36 @@
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
             margin-bottom: 5px;
+        }
+
+        /* --- 다시(Undo) 버튼 스타일 --- */
+        .undo-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ffd700;
+            border: 3px solid #fff;
+            color: #000;
+            font-family: 'Gamja Flower', cursive;
+            font-size: 1.6rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            margin-top: 15px;
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+        
+        .undo-btn:hover {
+            transform: scale(1.1);
+            background: #ffed4a;
+        }
+        
+        .undo-btn:active {
+            transform: scale(0.95);
         }
 
         /* --- 턴 표시 효과 --- */
@@ -113,7 +140,7 @@
 
         /* --- 중앙 보드 프레임 --- */
         .board-frame {
-            flex: 1; /* 남은 공간 모두 차지 */
+            flex: 1;
             position: relative;
             background-color: #000;
             display: flex;
@@ -121,7 +148,7 @@
             align-items: center;
             overflow: hidden; 
             padding: 0;
-            min-width: 0; /* Flexbox 자식 넘침 방지 */
+            min-width: 0;
         }
 
         .player-info-box {
@@ -156,7 +183,6 @@
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
             cursor: crosshair;
             display: block;
-            /* 반응형 크기 설정 */
             max-width: 95%;
             max-height: 95%;
             width: auto;
@@ -246,24 +272,21 @@
 
         /* --- 반응형 미디어 쿼리 --- */
 
-        /* 태블릿 (아이패드 세로 등 좁은 폭) */
+        /* 태블릿 */
         @media (max-width: 1024px) {
             .mini-player-name { font-size: 2.0rem; }
-            .player-frame { 
-                min-width: 120px; 
-                padding: 20px 5px;
-            }
+            .player-frame { min-width: 120px; padding: 20px 5px; }
         }
 
         /* 모바일 (폰 세로 모드) */
         @media (max-width: 768px) {
             .game-container { flex-direction: column; }
             .player-frame {
-                flex: 0 0 auto; /* 높이 자동 */
+                flex: 0 0 auto; 
                 width: 100%;
-                height: 80px; /* 고정 높이 */
+                height: 90px; /* 버튼 공간 확보를 위해 약간 늘림 */
                 flex-direction: row; 
-                padding: 0 20px;
+                padding: 0 15px;
                 justify-content: space-between; 
                 align-items: center;
                 min-width: 0;
@@ -273,11 +296,17 @@
                 margin-bottom: 0;
                 flex-direction: row;
                 justify-content: flex-start; 
+                align-items: center;
             }
             .mini-player-name { font-size: 1.8rem; margin: 0 10px; order: 2; }
-            .mini-profile-img { width: 60px; height: 60px; min-width: 60px; min-height: 60px; margin-right: 15px; margin-bottom: 0; order: 1; }
+            .mini-profile-img { width: 60px; height: 60px; min-width: 60px; min-height: 60px; margin-right: 10px; margin-bottom: 0; order: 1; }
             .score-badge { margin: 0; margin-left: auto; order: 3; font-size: 1.5rem; }
             
+            /* 모바일에서 버튼 위치 조정 */
+            .undo-btn {
+                width: 50px; height: 50px; font-size: 1.3rem; margin-top: 0; margin-left: 10px; order: 4;
+            }
+
             .player-info-box { display: none; }
             
             .board-frame { flex: 1; border: none; }
@@ -297,7 +326,9 @@
         
         <div class="player-top-info">
             <img src="black_ggami.png" alt="Ggami Profile" class="mini-profile-img">
-            <div class="score-badge" id="score-p1">0 승</div> <div class="mini-player-name">까미 (나)</div>
+            <div class="score-badge" id="score-p1">0 승</div> 
+            <div class="mini-player-name">까미 (나)</div>
+            <button class="undo-btn" id="undo-btn" onclick="undoLastTurn()">다시</button>
         </div>
 
         <div class="player-info-box"></div>
@@ -380,6 +411,7 @@
     const AI = 2;    
 
     let board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
+    let moveHistory = []; // 착수 기록 저장용 배열
     let currentPlayer = 1;
     let gameActive = false;
     let round = 1;
@@ -436,14 +468,13 @@
             }
         }
 
-        // 백돌(AI) 깜빡임 효과 (lastMove가 있을 때 계속 그리기)
+        // 백돌(AI) 깜빡임 효과 (lastMove가 있을 때만)
         if (lastMove) {
             const cx = PADDING + lastMove.x * CELL_SIZE;
             const cy = PADDING + lastMove.y * CELL_SIZE;
 
             ctx.save();
             ctx.beginPath();
-            // 백돌 위에 금색 테두리/빛 효과
             ctx.arc(cx, cy, CELL_SIZE * 0.48, 0, Math.PI * 2);
             ctx.lineWidth = 4;
             ctx.strokeStyle = `rgba(255, 215, 0, ${blinkAlpha})`; // 금색 + 투명도 변화
@@ -455,13 +486,9 @@
     function drawStone(x, y, player) {
         const cx = PADDING + x * CELL_SIZE;
         const cy = PADDING + y * CELL_SIZE;
-        
-        // 돌 크기 확대 (셀 크기의 48%)
         const radius = CELL_SIZE * 0.48;
 
         ctx.save();
-        
-        // 그림자
         ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
         ctx.shadowBlur = 4;
         ctx.shadowOffsetX = 2;
@@ -485,12 +512,10 @@
             grad.addColorStop(1, "#ccc");
             ctx.fillStyle = grad;
         }
-        
         ctx.fill();
         ctx.restore();
     }
 
-    // ★ 수정된 startBlinking: 시간 제한(setTimeout) 없이 계속 깜빡이게 변경 ★
     function startBlinking(x, y) {
         if (blinkInterval) clearInterval(blinkInterval);
         
@@ -504,8 +529,6 @@
             if (blinkAlpha >= 1.0) blinkDir = -0.1;
             drawBoard();
         }, 50);
-        
-        // setTimeout 제거됨: 사용자가 둘 때까지 무한 반복
     }
 
     function updateTurnUI() {
@@ -564,12 +587,70 @@
     function startRound(startPlayer) {
         currentPlayer = startPlayer;
         gameActive = true;
+        moveHistory = []; // 라운드 시작 시 기록 초기화
         updateTurnUI();
 
         if (currentPlayer === AI) {
             setTimeout(makeAiMove, 1000);
         }
     }
+
+    // --- "다시" (Undo) 기능 ---
+    function undoLastTurn() {
+        // 게임 진행 중이 아니거나 기록이 없으면 무시
+        if (!gameActive || moveHistory.length === 0) return;
+        
+        // AI가 계산 중일 때(턴이 AI에게 넘어간 아주 짧은 순간)는 오동작 방지를 위해 리턴
+        if (currentPlayer === AI) return;
+
+        // 일반적으로 내 차례(HUMAN)에 버튼을 누르면, 직전의 'AI 수'와 '내 수'를 모두 물러야 함.
+        // 하지만 만약 내가 선공이라 첫 수를 뒀는데 AI가 아직 안 뒀다면(거의 없지만), 내 돌만 무름.
+        
+        let movesToUndo = 0;
+        
+        // 기록의 마지막이 AI인지 확인
+        if (moveHistory.length > 0 && moveHistory[moveHistory.length-1].player === AI) {
+            movesToUndo = 2; // AI와 나, 2개를 무름
+        } else {
+            movesToUndo = 1; // 내 돌만 무름 (혹은 AI 선공 후 내가 아직 안 뒀을 때는 AI꺼만 무름 -> 로직상 내가 누를 수 있는 상황은 내 턴)
+        }
+
+        // 실제로 2개 이상이 있어야 정상적인 한 턴 무르기가 됨 (나+AI)
+        // 만약 AI가 선공이고 AI만 둔 상태라면? -> 내 턴이므로 undo 누르면 AI 돌을 무름.
+        
+        // 안전하게 루프
+        for (let i = 0; i < movesToUndo; i++) {
+            if (moveHistory.length === 0) break;
+            const last = moveHistory.pop();
+            board[last.y][last.x] = 0;
+        }
+
+        // 턴을 사용자(HUMAN)에게 맞춤
+        currentPlayer = HUMAN;
+        
+        // 이전 상태 복원 (반짝임 효과)
+        // 2개를 물렀다면 그 이전의 돌은 AI가 둔 돌일 확률이 높음.
+        // history의 마지막 돌을 찾아 반짝임 처리.
+        if (moveHistory.length > 0) {
+            const prevMove = moveHistory[moveHistory.length - 1];
+            // 마지막 기록이 AI 돌이라면 반짝이게
+            if (prevMove.player === AI) {
+                startBlinking(prevMove.x, prevMove.y);
+            } else {
+                // 만약 마지막 기록이 흑돌이라면 반짝임 끔
+                if (blinkInterval) clearInterval(blinkInterval);
+                lastMove = null;
+            }
+        } else {
+            // 기록이 없으면(첫수 이전) 반짝임 제거
+            if (blinkInterval) clearInterval(blinkInterval);
+            lastMove = null;
+        }
+
+        updateTurnUI();
+        drawBoard();
+    }
+
 
     // --- 터치(착수) 이벤트 핸들러 ---
     canvas.addEventListener('click', (e) => {
@@ -707,7 +788,6 @@
         return false;
     }
 
-    // ★ 수정된 placeStone: 흑돌 착수 시 반짝임 해제 로직 추가 ★
     function placeStone(x, y) {
         if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
         if (board[y][x] !== 0) return;
@@ -717,16 +797,19 @@
             return; 
         }
 
-        // [중요] 흑돌(나)이 착수할 때, 기존에 반짝이던 효과를 제거함
+        // 흑돌(나)이 착수할 때, 기존 반짝임 해제
         if (currentPlayer === HUMAN) {
             if (blinkInterval) {
                 clearInterval(blinkInterval);
                 blinkInterval = null;
             }
-            lastMove = null; // 더 이상 그리지 않음
+            lastMove = null; 
         }
 
         board[y][x] = currentPlayer;
+        
+        // 착수 기록 저장
+        moveHistory.push({x: x, y: y, player: currentPlayer});
         
         if (currentPlayer === HUMAN) playSound(sndBlack);
         else playSound(sndWhite);
@@ -785,7 +868,6 @@
         
         document.getElementById(`score-p${winner}`).innerText = `${scores[winner]} 승`;
 
-        // 2승 달성 시 (최종 우승)
         if (scores[winner] >= 2) {
             playSound(sndFinalWin);
 
@@ -803,14 +885,12 @@
 
             finalScreen.classList.remove('hidden');
 
-            // 5초 후 재시작 (알림창 없음)
             setTimeout(() => {
                 finalScreen.classList.add('hidden');
                 location.reload();
             }, 5000); 
 
         } else {
-            // 라운드 승리
             playSound(sndRoundWin);
 
             const screen = document.getElementById('ceremony-screen');
@@ -837,12 +917,12 @@
     }
 
     function resetBoard() {
-        // 보드 초기화 시 반짝임도 완전히 제거
         if (blinkInterval) {
             clearInterval(blinkInterval);
             blinkInterval = null;
         }
         lastMove = null;
+        moveHistory = []; // 보드 리셋 시 기록도 초기화
 
         board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
         drawBoard();
