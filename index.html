@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>천하무적의 김치와오목 3판2승</title>
+    <title>천하무적의 김치와오목 - 공격형 AI</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -411,18 +411,23 @@
     const AI = 2;    
 
     let board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
-    let moveHistory = []; // 착수 기록 저장용 배열
+    let moveHistory = []; 
     let currentPlayer = 1;
     let gameActive = false;
     let round = 1;
     let scores = { 1: 0, 2: 0 };
     let winnerOfLastRound = 0;
 
-    // 마지막 수 표시를 위한 변수
+    // 마지막 수 표시용
     let lastMove = null;
     let blinkInterval = null;
     let blinkAlpha = 0.5;
     let blinkDir = 0.1;
+
+    // 승리 시 돌 깜빡임(Red Blink)용
+    let winningStones = []; 
+    let winBlinkState = false; 
+    let winBlinkInterval = null;
     
     /* --- 초기화 --- */
     function initCanvas() {
@@ -468,16 +473,15 @@
             }
         }
 
-        // 백돌(AI) 깜빡임 효과 (lastMove가 있을 때만)
-        if (lastMove) {
+        // 백돌(AI) 깜빡임 (lastMove)
+        if (lastMove && winningStones.length === 0) { // 승리 연출 중엔 끔
             const cx = PADDING + lastMove.x * CELL_SIZE;
             const cy = PADDING + lastMove.y * CELL_SIZE;
-
             ctx.save();
             ctx.beginPath();
             ctx.arc(cx, cy, CELL_SIZE * 0.48, 0, Math.PI * 2);
             ctx.lineWidth = 4;
-            ctx.strokeStyle = `rgba(255, 215, 0, ${blinkAlpha})`; // 금색 + 투명도 변화
+            ctx.strokeStyle = `rgba(255, 215, 0, ${blinkAlpha})`; 
             ctx.stroke();
             ctx.restore();
         }
@@ -487,6 +491,17 @@
         const cx = PADDING + x * CELL_SIZE;
         const cy = PADDING + y * CELL_SIZE;
         const radius = CELL_SIZE * 0.48;
+
+        // 승리한 돌인지 확인 (Red Blink)
+        let isWinningStone = false;
+        if (winningStones.length > 0) {
+            for(let ws of winningStones) {
+                if(ws.x === x && ws.y === y) {
+                    isWinningStone = true;
+                    break;
+                }
+            }
+        }
 
         ctx.save();
         ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
@@ -513,6 +528,16 @@
             ctx.fillStyle = grad;
         }
         ctx.fill();
+
+        // **승리 시 빨간색 번쩍임 효과**
+        if (isWinningStone && winBlinkState) {
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = "#ff0000"; // 밝은 빨강
+            ctx.shadowColor = "rgba(255, 0, 0, 0.8)";
+            ctx.shadowBlur = 20;
+            ctx.stroke();
+        }
+
         ctx.restore();
     }
 
@@ -527,7 +552,8 @@
             blinkAlpha += blinkDir;
             if (blinkAlpha <= 0.2) blinkDir = 0.1;
             if (blinkAlpha >= 1.0) blinkDir = -0.1;
-            drawBoard();
+            // 승리 연출 중이 아닐 때만 그리기 (충돌 방지)
+            if(winningStones.length === 0) drawBoard();
         }, 50);
     }
 
@@ -587,7 +613,8 @@
     function startRound(startPlayer) {
         currentPlayer = startPlayer;
         gameActive = true;
-        moveHistory = []; // 라운드 시작 시 기록 초기화
+        moveHistory = []; 
+        winningStones = []; // 초기화
         updateTurnUI();
 
         if (currentPlayer === AI) {
@@ -595,54 +622,34 @@
         }
     }
 
-    // --- "다시" (Undo) 기능 ---
     function undoLastTurn() {
-        // 게임 진행 중이 아니거나 기록이 없으면 무시
         if (!gameActive || moveHistory.length === 0) return;
-        
-        // AI가 계산 중일 때(턴이 AI에게 넘어간 아주 짧은 순간)는 오동작 방지를 위해 리턴
         if (currentPlayer === AI) return;
 
-        // 일반적으로 내 차례(HUMAN)에 버튼을 누르면, 직전의 'AI 수'와 '내 수'를 모두 물러야 함.
-        // 하지만 만약 내가 선공이라 첫 수를 뒀는데 AI가 아직 안 뒀다면(거의 없지만), 내 돌만 무름.
-        
         let movesToUndo = 0;
-        
-        // 기록의 마지막이 AI인지 확인
         if (moveHistory.length > 0 && moveHistory[moveHistory.length-1].player === AI) {
-            movesToUndo = 2; // AI와 나, 2개를 무름
+            movesToUndo = 2; 
         } else {
-            movesToUndo = 1; // 내 돌만 무름 (혹은 AI 선공 후 내가 아직 안 뒀을 때는 AI꺼만 무름 -> 로직상 내가 누를 수 있는 상황은 내 턴)
+            movesToUndo = 1; 
         }
 
-        // 실제로 2개 이상이 있어야 정상적인 한 턴 무르기가 됨 (나+AI)
-        // 만약 AI가 선공이고 AI만 둔 상태라면? -> 내 턴이므로 undo 누르면 AI 돌을 무름.
-        
-        // 안전하게 루프
         for (let i = 0; i < movesToUndo; i++) {
             if (moveHistory.length === 0) break;
             const last = moveHistory.pop();
             board[last.y][last.x] = 0;
         }
 
-        // 턴을 사용자(HUMAN)에게 맞춤
         currentPlayer = HUMAN;
         
-        // 이전 상태 복원 (반짝임 효과)
-        // 2개를 물렀다면 그 이전의 돌은 AI가 둔 돌일 확률이 높음.
-        // history의 마지막 돌을 찾아 반짝임 처리.
         if (moveHistory.length > 0) {
             const prevMove = moveHistory[moveHistory.length - 1];
-            // 마지막 기록이 AI 돌이라면 반짝이게
             if (prevMove.player === AI) {
                 startBlinking(prevMove.x, prevMove.y);
             } else {
-                // 만약 마지막 기록이 흑돌이라면 반짝임 끔
                 if (blinkInterval) clearInterval(blinkInterval);
                 lastMove = null;
             }
         } else {
-            // 기록이 없으면(첫수 이전) 반짝임 제거
             if (blinkInterval) clearInterval(blinkInterval);
             lastMove = null;
         }
@@ -652,7 +659,6 @@
     }
 
 
-    // --- 터치(착수) 이벤트 핸들러 ---
     canvas.addEventListener('click', (e) => {
         if (!gameActive || currentPlayer === AI || isDraggingOrZooming) return;
 
@@ -667,7 +673,7 @@
         placeStone(gx, gy);
     });
 
-    // --- AI 로직 ---
+    /* --- AI 로직 (공격형 업그레이드) --- */
     function makeAiMove() {
         if (!gameActive) return;
         let bestMove = getBestMove(AI);
@@ -677,37 +683,73 @@
     }
 
     function getBestMove(player) {
+        // [규칙 1] AI 선공 시 첫 수는 무조건 천원(중앙)
+        if (moveHistory.length === 0) {
+            const center = Math.floor(GRID_SIZE / 2);
+            return {x: center, y: center};
+        }
+
         const opponent = player === AI ? HUMAN : AI;
         let bestScore = -Infinity;
         let bestMoves = [];
 
+        // 상대방의 마지막 수
+        let lastOpponentMove = null;
+        if (moveHistory.length > 0) {
+            lastOpponentMove = moveHistory[moveHistory.length - 1];
+        }
+
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
                 if (board[y][x] === 0) {
+                    
+                    // [핵심 변경] 수비(defense)보다 공격(attack)에 가중치 부여
+                    // 기존: attack + (defense * 1.2) -> 수비 위주
+                    // 변경: (attack * 1.5) + defense -> 공격 위주
+                    
                     let attackScore = evaluatePoint(x, y, player); 
                     let defenseScore = evaluatePoint(x, y, opponent); 
-                    let totalScore = attackScore + (defenseScore * 1.2);
+                    
+                    // 만약 상대가 5목 직전(4개)이면 무조건 막아야 함 (최우선)
+                    // 만약 내가 5목 직전(4개)이면 무조건 둬야 함 (승리)
+                    
+                    let totalScore = 0;
+                    
+                    // 1. 승리 확정 수 (내 공격)
+                    if (attackScore >= 100000) totalScore = 10000000; 
+                    // 2. 패배 방어 수 (상대 4목 방어)
+                    else if (defenseScore >= 100000) totalScore = 5000000;
+                    // 3. 공격 우선 계산
+                    else {
+                        // 공격 점수를 1.5배 높게 책정
+                        totalScore = (attackScore * 1.5) + defenseScore;
+                    }
 
-                    if (attackScore >= 100000) totalScore = 2000000; 
-                    else if (defenseScore >= 100000) totalScore = 1000000;
+                    // [규칙 2] 자석 효과
+                    if (attackScore < 100 && defenseScore < 100) {
+                        const center = GRID_SIZE / 2;
+                        const distFromCenter = Math.abs(x - center) + Math.abs(y - center);
+                        totalScore += (20 - distFromCenter) * 0.5;
 
-                    totalScore += Math.random() * 5;
+                        if (lastOpponentMove) {
+                            const distFromLast = Math.abs(x - lastOpponentMove.x) + Math.abs(y - lastOpponentMove.y);
+                            if (distFromLast <= 2) totalScore += 15; 
+                            else if (distFromLast <= 4) totalScore += 5; 
+                        }
+                    }
+
+                    totalScore += Math.random() * 2;
 
                     if (totalScore > bestScore) {
                         bestScore = totalScore;
                         bestMoves = [{x, y}];
-                    } else if (totalScore === bestScore) {
+                    } else if (Math.abs(totalScore - bestScore) < 1) { 
                         bestMoves.push({x, y});
                     }
                 }
             }
         }
-
-        const center = Math.floor(GRID_SIZE / 2);
-        if (board[center][center] === 0 && bestScore < 100) {
-            return {x: center, y: center};
-        }
-
+        
         return bestMoves.length > 0 ? bestMoves[Math.floor(Math.random() * bestMoves.length)] : null;
     }
 
@@ -716,13 +758,36 @@
         const directions = [[1, 0], [0, 1], [1, 1], [1, -1]]; 
 
         for (let [dx, dy] of directions) {
-            const lineStr = getLinePattern(x, y, dx, dy, player);
+            // [지능형] 5목이 절대 안 되는 곳(죽은 줄)은 점수 0점 (무시)
+            if (!hasPotential(x, y, dx, dy, player)) continue;
+
+            const lineStr = getLinePatternForScore(x, y, dx, dy, player);
             score += getPatternScore(lineStr);
         }
         return score;
     }
 
-    function getLinePattern(x, y, dx, dy, player) {
+    // 5목이 될 가능성이 있는지 확인하는 함수 (죽은 줄 감지)
+    function hasPotential(x, y, dx, dy, player) {
+        let count = 1; 
+        let i = 1;
+        while(true) {
+            let nx = x + dx * i, ny = y + dy * i;
+            if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) break; 
+            if (board[ny][nx] !== 0 && board[ny][nx] !== player) break; // 상대 돌에 막힘
+            count++; i++;
+        }
+        let j = 1;
+        while(true) {
+            let nx = x - dx * j, ny = y - dy * j;
+            if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) break;
+            if (board[ny][nx] !== 0 && board[ny][nx] !== player) break; 
+            count++; j++;
+        }
+        return count >= 5;
+    }
+
+    function getLinePatternForScore(x, y, dx, dy, player) {
         let str = "";
         for (let i = -4; i <= 4; i++) {
             if (i === 0) {
@@ -736,7 +801,7 @@
                     const cell = board[ny][nx];
                     if (cell === player) str += "P"; 
                     else if (cell === 0) str += "0"; 
-                    else str += "E"; 
+                    else str += "E"; // 상대 돌 (Enemy)
                 }
             }
         }
@@ -744,42 +809,89 @@
     }
 
     function getPatternScore(str) {
-        let score = 0;
+        // [점수 체계]
+        // 5목 완성: 100,000
         if (/P{4}M|MP{4}|P{3}MP|PMP{3}|P{2}MP{2}/.test(str)) return 100000;
+        
+        // 열린 4 (Open 4) - 막지 않으면 짐: 50,000
         if (/0P{3}M0|0MP{3}0|0P{2}MP0|0PMP{2}0/.test(str)) return 50000;
-        if (/P{3}M|MP{3}|P{2}MP|PMP{2}/.test(str)) return 10000; 
-        if (/P{2}0MP|PM0P{2}|P0PMP|PMP0P/.test(str)) return 8000; 
-        if (/0P{2}M0|0MP{2}0|0PMP0/.test(str)) return 5000;
-        if (/0P0PM0|0MP0P0|0P0MP0/.test(str)) return 4500;
-        if (/00PM00|00MP00|0P0M0/.test(str)) return 500;
-        return score;
+        
+        // 4-3 공격 가능성 (중요)
+        // 막힌 4 (Sleep 4)
+        if (/P{3}M|MP{3}|P{2}MP|PMP{2}/.test(str)) return 5000; 
+        
+        // 열린 3 (Open 3) - 다음 수에 Open 4가 됨: 10,000 (높음)
+        if (/0P{2}M0|0MP{2}0|0PMP0/.test(str)) return 10000;
+
+        // 뛴 3 등
+        if (/P{2}0MP|PM0P{2}|P0PMP|PMP0P/.test(str)) return 4000; 
+        
+        // 열린 2 (Open 2) - 기초 공사: 1,000
+        if (/00PM00|00MP00|0P0M0/.test(str)) return 1000;
+
+        return 0;
     }
 
-    // --- 3-3 금수 ---
-    function check33(x, y, player) {
-        board[y][x] = player; 
+    // ==========================================
+    // [핵심] 정밀한 3-3 금수 판독기 (Strict 3-3 Forbidden Check)
+    // ==========================================
+    function checkForbidden33(x, y, player) {
+        if (isFourOrMorePossible(x, y, player)) return false; 
+
         let openThreeCount = 0;
         const directions = [[1,0], [0,1], [1,1], [1,-1]]; 
 
-        for(let d of directions) {
-            if(isDirectionOpenThree(x, y, player, d[0], d[1])) {
+        board[y][x] = player;
+        for (let d of directions) {
+            if (isOpenThree(x, y, player, d[0], d[1])) {
                 openThreeCount++;
             }
         }
-        board[y][x] = 0; 
+        board[y][x] = 0;
+
         return openThreeCount >= 2;
     }
 
-    function isDirectionOpenThree(x, y, player, dx, dy) {
+    function isFourOrMorePossible(x, y, player) {
+        board[y][x] = player;
+        const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
+        let isFour = false;
+
+        for (let [dx, dy] of directions) {
+            let count = 1;
+            let i = 1;
+            while(true) {
+                let nx = x + dx * i, ny = y + dy * i;
+                if(nx<0||nx>=GRID_SIZE||ny<0||ny>=GRID_SIZE||board[ny][nx]!=player) break;
+                count++; i++;
+            }
+            let j = 1;
+            while(true) {
+                let nx = x - dx * j, ny = y - dy * j;
+                if(nx<0||nx>=GRID_SIZE||ny<0||ny>=GRID_SIZE||board[ny][nx]!=player) break;
+                count++; j++;
+            }
+            if (count >= 4) { 
+                isFour = true;
+                break;
+            }
+        }
+        board[y][x] = 0; 
+        return isFour;
+    }
+
+    function isOpenThree(x, y, player, dx, dy) {
         let str = "";
         for (let i = -4; i <= 4; i++) {
             let nx = x + dx * i;
             let ny = y + dy * i;
-            if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) str += "X"; 
-            else {
-                if (board[ny][nx] === player) str += "P";
-                else if (board[ny][nx] === 0) str += "0";
-                else str += "E"; 
+            if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) {
+                str += "X"; 
+            } else {
+                const cell = board[ny][nx];
+                if (cell === player) str += "P"; 
+                else if (cell === 0) str += "0"; 
+                else str += "X"; 
             }
         }
         if (str.includes("0PPP0")) return true;
@@ -788,16 +900,18 @@
         return false;
     }
 
+    // ==========================================
+
     function placeStone(x, y) {
         if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
         if (board[y][x] !== 0) return;
 
-        if(currentPlayer === HUMAN && check33(x, y, currentPlayer)) {
-            alert("흑돌은 3-3(쌍삼) 금수입니다!");
+        // [흑돌(나)에게만 3-3 금수 적용]
+        if(currentPlayer === HUMAN && checkForbidden33(x, y, currentPlayer)) {
+            alert("거긴 안 돼! 쌍삼(3-3) 금지 자리야! (단, 4가 되면 가능)");
             return; 
         }
 
-        // 흑돌(나)이 착수할 때, 기존 반짝임 해제
         if (currentPlayer === HUMAN) {
             if (blinkInterval) {
                 clearInterval(blinkInterval);
@@ -808,21 +922,21 @@
 
         board[y][x] = currentPlayer;
         
-        // 착수 기록 저장
         moveHistory.push({x: x, y: y, player: currentPlayer});
         
         if (currentPlayer === HUMAN) playSound(sndBlack);
         else playSound(sndWhite);
 
-        // 백돌(AI)이 착수하면 반짝임 시작
         if (currentPlayer === AI) {
             startBlinking(x, y);
         }
 
         drawBoard(); 
 
-        if (checkWin(x, y, currentPlayer)) {
-            handleWin(currentPlayer);
+        const winLine = checkWinLine(x, y, currentPlayer);
+        
+        if (winLine) {
+            handleWinWithAnimation(currentPlayer, winLine);
         } else {
             currentPlayer = currentPlayer === 1 ? 2 : 1;
             updateTurnUI();
@@ -832,18 +946,18 @@
         }
     }
 
-    function checkWin(x, y, player) {
+    function checkWinLine(x, y, player) {
         const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
         for (let [dx, dy] of directions) {
-            let count = 1;
+            let line = [{x, y}];
 
             let i = 1;
             while(true) {
                 const nx = x + dx * i;
                 const ny = y + dy * i;
                 if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE || board[ny][nx] !== player) break;
-                count++;
+                line.push({x: nx, y: ny});
                 i++;
             }
 
@@ -852,17 +966,38 @@
                 const nx = x - dx * j;
                 const ny = y - dy * j;
                 if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE || board[ny][nx] !== player) break;
-                count++;
+                line.push({x: nx, y: ny});
                 j++;
             }
 
-            if (count === 5) return true;
+            if (line.length >= 5) return line;
         }
-        return false;
+        return null;
     }
 
-    function handleWin(winner) {
+    function handleWinWithAnimation(winner, winLine) {
         gameActive = false;
+        winningStones = winLine; 
+        
+        let toggle = true;
+        winBlinkState = true;
+        
+        if(winBlinkInterval) clearInterval(winBlinkInterval);
+        winBlinkInterval = setInterval(() => {
+            winBlinkState = !winBlinkState;
+            drawBoard();
+        }, 200);
+
+        setTimeout(() => {
+            clearInterval(winBlinkInterval);
+            winBlinkState = true; 
+            drawBoard();
+            
+            finishGame(winner);
+        }, 5000);
+    }
+
+    function finishGame(winner) {
         scores[winner]++;
         winnerOfLastRound = winner;
         
@@ -917,19 +1052,18 @@
     }
 
     function resetBoard() {
-        if (blinkInterval) {
-            clearInterval(blinkInterval);
-            blinkInterval = null;
-        }
+        if (blinkInterval) clearInterval(blinkInterval);
+        if (winBlinkInterval) clearInterval(winBlinkInterval);
+        
         lastMove = null;
-        moveHistory = []; // 보드 리셋 시 기록도 초기화
+        winningStones = [];
+        moveHistory = []; 
 
         board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(0));
         drawBoard();
     }
 
     /* --- 핀치 줌 & 팬 로직 --- */
-    
     let currentScale = 1;
     let currentX = 0;
     let currentY = 0;
