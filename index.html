@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>천하무적의 김치와오목 - 공격형 AI</title>
+    <title>천하무적의 김치와오목 - 정통 룰</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -832,85 +832,12 @@
         return 0;
     }
 
-    // ==========================================
-    // [핵심] 정밀한 3-3 금수 판독기 (Strict 3-3 Forbidden Check)
-    // ==========================================
-    function checkForbidden33(x, y, player) {
-        if (isFourOrMorePossible(x, y, player)) return false; 
-
-        let openThreeCount = 0;
-        const directions = [[1,0], [0,1], [1,1], [1,-1]]; 
-
-        board[y][x] = player;
-        for (let d of directions) {
-            if (isOpenThree(x, y, player, d[0], d[1])) {
-                openThreeCount++;
-            }
-        }
-        board[y][x] = 0;
-
-        return openThreeCount >= 2;
-    }
-
-    function isFourOrMorePossible(x, y, player) {
-        board[y][x] = player;
-        const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
-        let isFour = false;
-
-        for (let [dx, dy] of directions) {
-            let count = 1;
-            let i = 1;
-            while(true) {
-                let nx = x + dx * i, ny = y + dy * i;
-                if(nx<0||nx>=GRID_SIZE||ny<0||ny>=GRID_SIZE||board[ny][nx]!=player) break;
-                count++; i++;
-            }
-            let j = 1;
-            while(true) {
-                let nx = x - dx * j, ny = y - dy * j;
-                if(nx<0||nx>=GRID_SIZE||ny<0||ny>=GRID_SIZE||board[ny][nx]!=player) break;
-                count++; j++;
-            }
-            if (count >= 4) { 
-                isFour = true;
-                break;
-            }
-        }
-        board[y][x] = 0; 
-        return isFour;
-    }
-
-    function isOpenThree(x, y, player, dx, dy) {
-        let str = "";
-        for (let i = -4; i <= 4; i++) {
-            let nx = x + dx * i;
-            let ny = y + dy * i;
-            if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) {
-                str += "X"; 
-            } else {
-                const cell = board[ny][nx];
-                if (cell === player) str += "P"; 
-                else if (cell === 0) str += "0"; 
-                else str += "X"; 
-            }
-        }
-        if (str.includes("0PPP0")) return true;
-        if (str.includes("0P0PP0")) return true;
-        if (str.includes("0PP0P0")) return true;
-        return false;
-    }
-
-    // ==========================================
-
     function placeStone(x, y) {
         if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
         if (board[y][x] !== 0) return;
 
-        // [흑돌(나)에게만 3-3 금수 적용]
-        if(currentPlayer === HUMAN && checkForbidden33(x, y, currentPlayer)) {
-            alert("거긴 안 돼! 쌍삼(3-3) 금지 자리야! (단, 4가 되면 가능)");
-            return; 
-        }
+        // [중요] 흑/백 모두 규칙 동일 적용을 위해 별도의 금수 체크(checkForbidden33) 삭제함
+        // 누구나 3-3, 4-4 가능하지만, 승리는 오직 '정확히 5목'일 때만 인정
 
         if (currentPlayer === HUMAN) {
             if (blinkInterval) {
@@ -970,7 +897,8 @@
                 j++;
             }
 
-            if (line.length >= 5) return line;
+            // [규칙 변경] 6목 이상은 승리가 아님. 정확히 5개여야 승리.
+            if (line.length === 5) return line;
         }
         return null;
     }
