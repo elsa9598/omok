@@ -4,20 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>천하무적의 김치와오목 - 정통 룰</title>
+    <title>천하무적의 김치와오목 (3-3 금수포함)</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap" rel="stylesheet">
-
     <style>
+        /* --- 폰트 선언 --- */
+        @font-face {
+            font-family: 'Radio';
+            src: url('radio.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         /* --- 기본 설정 --- */
         body {
             margin: 0;
             padding: 0;
             background-color: #222;
             color: white;
-            font-family: 'Gamja Flower', cursive;
+            font-family: 'Radio', cursive, sans-serif;
             font-size: 1.7rem;
             overflow: hidden;
             display: flex;
@@ -26,6 +31,8 @@
             height: 100vh;
             height: 100dvh; 
             touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         /* --- 레이아웃 --- */
@@ -104,7 +111,7 @@
             background: #ffd700;
             border: 3px solid #fff;
             color: #000;
-            font-family: 'Gamja Flower', cursive;
+            font-family: 'Radio', cursive, sans-serif;
             font-size: 1.6rem;
             font-weight: bold;
             cursor: pointer;
@@ -190,6 +197,35 @@
             aspect-ratio: 1 / 1; 
         }
 
+        /* --- 경고 메시지 (3-3 금수) --- */
+        #warning-toast {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 2rem;
+            font-weight: bold;
+            z-index: 200;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 3px solid #fff;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        #warning-toast.show {
+            opacity: 1;
+            animation: shake 0.3s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%); }
+            25% { transform: translate(-55%, -50%); }
+            75% { transform: translate(-45%, -50%); }
+        }
+
         /* --- 오버레이 (화면 덮는 UI) --- */
         .overlay-screen {
             position: absolute;
@@ -213,7 +249,7 @@
         .yellow-btn {
             background-color: #ffd700;
             color: #000;
-            font-family: 'Gamja Flower', cursive;
+            font-family: 'Radio', cursive, sans-serif;
             font-size: 2.8rem;
             font-weight: bold;
             padding: 15px 50px;
@@ -236,7 +272,7 @@
             border-radius: 50%;
             background: radial-gradient(circle, #fff, #ddd);
             border: 5px solid #ffd700;
-            font-family: 'Gamja Flower', cursive;
+            font-family: 'Radio', cursive, sans-serif;
             font-size: 2.2rem;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer;
@@ -255,7 +291,8 @@
         .ceremony-text {
             font-size: 4.5rem; color: #ffd700;
             text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-            margin-top: 20px; font-family: 'Gamja Flower', cursive;
+            margin-top: 20px; 
+            font-family: 'Radio', cursive, sans-serif;
         }
 
         .final-win-img {
@@ -284,7 +321,7 @@
             .player-frame {
                 flex: 0 0 auto; 
                 width: 100%;
-                height: 90px; /* 버튼 공간 확보를 위해 약간 늘림 */
+                height: 90px; 
                 flex-direction: row; 
                 padding: 0 15px;
                 justify-content: space-between; 
@@ -302,7 +339,6 @@
             .mini-profile-img { width: 60px; height: 60px; min-width: 60px; min-height: 60px; margin-right: 10px; margin-bottom: 0; order: 1; }
             .score-badge { margin: 0; margin-left: auto; order: 3; font-size: 1.5rem; }
             
-            /* 모바일에서 버튼 위치 조정 */
             .undo-btn {
                 width: 50px; height: 50px; font-size: 1.3rem; margin-top: 0; margin-left: 10px; order: 4;
             }
@@ -315,6 +351,7 @@
             .ceremony-img { max-width: 200px; }
             .ceremony-text { font-size: 3.5rem; }
             .final-win-img { max-width: 90%; }
+            #warning-toast { font-size: 1.5rem; width: 80%; text-align: center; }
         }
 
     </style>
@@ -339,6 +376,8 @@
         <div id="game-zoom-layer">
             <canvas id="go-board"></canvas>
         </div>
+
+        <div id="warning-toast">🚫 3-3 금수입니다!</div>
 
         <div id="start-screen" class="overlay-screen">
             <h1 style="font-size: 5rem; margin-bottom: 20px; text-shadow: 2px 2px 4px #000;">까미(나) vs 김치(백)</h1>
@@ -400,6 +439,7 @@
     const ctx = canvas.getContext('2d');
     const zoomLayer = document.getElementById('game-zoom-layer');
     const boardContainer = document.getElementById('board-container'); 
+    const warningToast = document.getElementById('warning-toast');
     
     // [19줄 바둑판 설정]
     const GRID_SIZE = 19; 
@@ -474,7 +514,7 @@
         }
 
         // 백돌(AI) 깜빡임 (lastMove)
-        if (lastMove && winningStones.length === 0) { // 승리 연출 중엔 끔
+        if (lastMove && winningStones.length === 0) { 
             const cx = PADDING + lastMove.x * CELL_SIZE;
             const cy = PADDING + lastMove.y * CELL_SIZE;
             ctx.save();
@@ -492,7 +532,6 @@
         const cy = PADDING + y * CELL_SIZE;
         const radius = CELL_SIZE * 0.48;
 
-        // 승리한 돌인지 확인 (Red Blink)
         let isWinningStone = false;
         if (winningStones.length > 0) {
             for(let ws of winningStones) {
@@ -513,14 +552,12 @@
         ctx.arc(cx, cy, radius, 0, Math.PI * 2);
 
         if (player === 1) { 
-            // 흑돌
             const grad = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.1, cx, cy, radius);
             grad.addColorStop(0, "#555");
             grad.addColorStop(0.3, "#222"); 
             grad.addColorStop(1, "#000");
             ctx.fillStyle = grad;
         } else { 
-            // 백돌
             const grad = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.1, cx, cy, radius);
             grad.addColorStop(0, "#fff");
             grad.addColorStop(0.9, "#ddd"); 
@@ -529,10 +566,9 @@
         }
         ctx.fill();
 
-        // **승리 시 빨간색 번쩍임 효과**
         if (isWinningStone && winBlinkState) {
             ctx.lineWidth = 5;
-            ctx.strokeStyle = "#ff0000"; // 밝은 빨강
+            ctx.strokeStyle = "#ff0000"; 
             ctx.shadowColor = "rgba(255, 0, 0, 0.8)";
             ctx.shadowBlur = 20;
             ctx.stroke();
@@ -552,7 +588,6 @@
             blinkAlpha += blinkDir;
             if (blinkAlpha <= 0.2) blinkDir = 0.1;
             if (blinkAlpha >= 1.0) blinkDir = -0.1;
-            // 승리 연출 중이 아닐 때만 그리기 (충돌 방지)
             if(winningStones.length === 0) drawBoard();
         }, 50);
     }
@@ -614,7 +649,7 @@
         currentPlayer = startPlayer;
         gameActive = true;
         moveHistory = []; 
-        winningStones = []; // 초기화
+        winningStones = []; 
         updateTurnUI();
 
         if (currentPlayer === AI) {
@@ -673,7 +708,79 @@
         placeStone(gx, gy);
     });
 
-    /* --- AI 로직 (공격형 업그레이드) --- */
+    /* --- [핵심] 3-3 금수 체크 로직 --- */
+    function checkForbidden33(x, y, player) {
+        // 일단 돌을 가상으로 놓는다
+        board[y][x] = player;
+        
+        // 열린 3의 개수
+        let open3Count = 0;
+        const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
+
+        for (let [dx, dy] of directions) {
+            if (isOpenThree(x, y, dx, dy, player)) {
+                open3Count++;
+            }
+        }
+
+        // 5목 완성 여부 확인 (승리가 금수보다 우선)
+        let isWin = false;
+        if (checkWinLine(x, y, player)) isWin = true;
+
+        // 돌을 다시 치운다
+        board[y][x] = 0;
+
+        // 승리 자리라면 3-3이어도 허용
+        if (isWin) return false;
+
+        // 열린 3이 2개 이상이면 금수
+        return open3Count >= 2;
+    }
+
+    // 열린 3인지 판별하는 함수 (패턴 분석)
+    function isOpenThree(x, y, dx, dy, player) {
+        // 라인을 문자열로 추출 (범위 4칸)
+        // 0:빈곳, P:내돌, M:지금놓은돌, E:상대돌/벽
+        let str = "";
+        for (let i = -4; i <= 4; i++) {
+            if (i === 0) str += "M"; 
+            else {
+                const nx = x + dx * i;
+                const ny = y + dy * i;
+                if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) {
+                    str += "E"; // 벽도 적과 같음
+                } else {
+                    const cell = board[ny][nx];
+                    if (cell === player) str += "P";
+                    else if (cell === 0) str += "0";
+                    else str += "E";
+                }
+            }
+        }
+
+        // 열린 3 패턴 정규식 (양쪽이 뚫려있고 돌이 3개인 경우)
+        // 0PP M 0  or 0M PP 0 (연속 3)
+        // 0P M P 0 (떨어진 3)
+        // 주의: 00PMP00 등도 포함됨. 핵심은 '막히지 않은 3'
+        
+        // 1. 스트레이트 3: 0PP M 0, 0M PP 0
+        if (/0P{2}M0|0MP{2}0/.test(str)) return true;
+        
+        // 2. 징검다리 3: 0P M P0
+        if (/0PMP0/.test(str)) return true;
+
+        return false;
+    }
+
+    function showWarning(msg) {
+        warningToast.innerText = msg;
+        warningToast.classList.add('show');
+        setTimeout(() => {
+            warningToast.classList.remove('show');
+        }, 1500);
+    }
+
+    /* --- AI 로직 --- */
     function makeAiMove() {
         if (!gameActive) return;
         let bestMove = getBestMove(AI);
@@ -683,7 +790,7 @@
     }
 
     function getBestMove(player) {
-        // [규칙 1] AI 선공 시 첫 수는 무조건 천원(중앙)
+        // [규칙 1] AI 선공 시 첫 수는 천원
         if (moveHistory.length === 0) {
             const center = Math.floor(GRID_SIZE / 2);
             return {x: center, y: center};
@@ -703,29 +810,20 @@
             for (let x = 0; x < GRID_SIZE; x++) {
                 if (board[y][x] === 0) {
                     
-                    // [핵심 변경] 수비(defense)보다 공격(attack)에 가중치 부여
-                    // 기존: attack + (defense * 1.2) -> 수비 위주
-                    // 변경: (attack * 1.5) + defense -> 공격 위주
-                    
+                    // [중요] 3-3 금수 자리는 절대 두지 않음 (AI도 규칙 준수)
+                    if (checkForbidden33(x, y, player)) continue;
+
                     let attackScore = evaluatePoint(x, y, player); 
                     let defenseScore = evaluatePoint(x, y, opponent); 
                     
-                    // 만약 상대가 5목 직전(4개)이면 무조건 막아야 함 (최우선)
-                    // 만약 내가 5목 직전(4개)이면 무조건 둬야 함 (승리)
-                    
                     let totalScore = 0;
                     
-                    // 1. 승리 확정 수 (내 공격)
                     if (attackScore >= 100000) totalScore = 10000000; 
-                    // 2. 패배 방어 수 (상대 4목 방어)
                     else if (defenseScore >= 100000) totalScore = 5000000;
-                    // 3. 공격 우선 계산
                     else {
-                        // 공격 점수를 1.5배 높게 책정
                         totalScore = (attackScore * 1.5) + defenseScore;
                     }
 
-                    // [규칙 2] 자석 효과
                     if (attackScore < 100 && defenseScore < 100) {
                         const center = GRID_SIZE / 2;
                         const distFromCenter = Math.abs(x - center) + Math.abs(y - center);
@@ -758,23 +856,20 @@
         const directions = [[1, 0], [0, 1], [1, 1], [1, -1]]; 
 
         for (let [dx, dy] of directions) {
-            // [지능형] 5목이 절대 안 되는 곳(죽은 줄)은 점수 0점 (무시)
             if (!hasPotential(x, y, dx, dy, player)) continue;
-
             const lineStr = getLinePatternForScore(x, y, dx, dy, player);
             score += getPatternScore(lineStr);
         }
         return score;
     }
 
-    // 5목이 될 가능성이 있는지 확인하는 함수 (죽은 줄 감지)
     function hasPotential(x, y, dx, dy, player) {
         let count = 1; 
         let i = 1;
         while(true) {
             let nx = x + dx * i, ny = y + dy * i;
             if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) break; 
-            if (board[ny][nx] !== 0 && board[ny][nx] !== player) break; // 상대 돌에 막힘
+            if (board[ny][nx] !== 0 && board[ny][nx] !== player) break; 
             count++; i++;
         }
         let j = 1;
@@ -801,7 +896,7 @@
                     const cell = board[ny][nx];
                     if (cell === player) str += "P"; 
                     else if (cell === 0) str += "0"; 
-                    else str += "E"; // 상대 돌 (Enemy)
+                    else str += "E"; 
                 }
             }
         }
@@ -809,26 +904,12 @@
     }
 
     function getPatternScore(str) {
-        // [점수 체계]
-        // 5목 완성: 100,000
         if (/P{4}M|MP{4}|P{3}MP|PMP{3}|P{2}MP{2}/.test(str)) return 100000;
-        
-        // 열린 4 (Open 4) - 막지 않으면 짐: 50,000
         if (/0P{3}M0|0MP{3}0|0P{2}MP0|0PMP{2}0/.test(str)) return 50000;
-        
-        // 4-3 공격 가능성 (중요)
-        // 막힌 4 (Sleep 4)
         if (/P{3}M|MP{3}|P{2}MP|PMP{2}/.test(str)) return 5000; 
-        
-        // 열린 3 (Open 3) - 다음 수에 Open 4가 됨: 10,000 (높음)
         if (/0P{2}M0|0MP{2}0|0PMP0/.test(str)) return 10000;
-
-        // 뛴 3 등
         if (/P{2}0MP|PM0P{2}|P0PMP|PMP0P/.test(str)) return 4000; 
-        
-        // 열린 2 (Open 2) - 기초 공사: 1,000
         if (/00PM00|00MP00|0P0M0/.test(str)) return 1000;
-
         return 0;
     }
 
@@ -836,8 +917,14 @@
         if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
         if (board[y][x] !== 0) return;
 
-        // [중요] 흑/백 모두 규칙 동일 적용을 위해 별도의 금수 체크(checkForbidden33) 삭제함
-        // 누구나 3-3, 4-4 가능하지만, 승리는 오직 '정확히 5목'일 때만 인정
+        // [3-3 금수 체크 적용]
+        if (checkForbidden33(x, y, currentPlayer)) {
+            // 금수이면 경고 표시하고 착수 취소
+            showWarning("🚫 3-3 금수입니다!");
+            // 삑 소리(오류음) 대신 가벼운 진동(모바일)
+            if(navigator.vibrate) navigator.vibrate(200);
+            return;
+        }
 
         if (currentPlayer === HUMAN) {
             if (blinkInterval) {
@@ -897,7 +984,6 @@
                 j++;
             }
 
-            // [규칙 변경] 6목 이상은 승리가 아님. 정확히 5개여야 승리.
             if (line.length === 5) return line;
         }
         return null;
